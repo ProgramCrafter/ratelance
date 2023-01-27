@@ -1,0 +1,31 @@
+tuple digitize_number(int value)
+  asm "NIL WHILE:<{ OVER }>DO<{ SWAP TEN DIVMOD s1 s2 XCHG TPUSH }> NIP";
+
+builder store_number(builder msg, tuple t)
+  asm "WHILE:<{ DUP TLEN }>DO<{ TPOP 48 ADDCONST ROT 8 STU SWAP }> DROP";
+
+slice log_address_rand_seed()  asm "b{01} b{001101000} |+ x{0000000052414E443A53454544} |+ PUSHSLICE";
+slice log_address_rand_value() asm "b{01} b{001110000} |+ x{0000000052414E443A56414C5545} |+ PUSHSLICE";
+
+() recv_internal() { }
+
+() recv_external(int balance, int msg_value, cell msg_full, slice in_msg) {
+  if (balance < 10 * 1000 * 1000) { return (); }
+  accept_message();
+  
+  send_raw_message(begin_cell()
+    .store_uint(0xC, 4)
+    .store_slice(log_address_rand_seed())
+    .store_uint(0, 96 + 2 + 32)
+    .store_slice("Seed: ")
+    .store_number(digitize_number(get_seed()))
+    .end_cell(), 0);
+  
+  send_raw_message(begin_cell()
+    .store_uint(0xC, 4)
+    .store_slice(log_address_rand_value())
+    .store_uint(0, 96 + 2 + 32)
+    .store_slice("Rand: ")
+    .store_number(digitize_number(random()))
+    .end_cell(), 0);
+}

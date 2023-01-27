@@ -1,0 +1,121 @@
+forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure asm
+  "{"                                ;; <- this function saves gas-remaining to 11-th element of c7's config
+    "c7 PUSH DUP FIRST"              ;; (c7, config)
+    "GASLIMITSTEMP SWAP DROP"        ;; (c7, config, gas_remaining)
+    "11 SETINDEX 0 SETINDEX c7 POP"  ;; <- new c7 saved
+  "} : save-gas-remaining"
+
+  "{"                                ;; <- assumes 'save-gas-remaining' was called before
+    "GASLIMITSTEMP SWAP DROP"
+    "11 GETPARAM SWAP SUB"
+    ;; we additionally executed [GASLIMITSTEMP, SWAP, DROP, SETINDEX, SETINDEX, POP],
+    ;; before actually calling 'EXECUTE'
+    ;; so we need to subtract   (     18      +  18 +  26 +  (12+26) + (1+26) + 18)
+    ;; from consumed gas value
+    "145 PUSHINT SUB"
+  "} : compute-gas-used"
+
+  "NEWC ENDC c5 POP"                 ;; clear actions cell
+  "RESETLOADEDCELLS"                 ;; <- make sure first cell load cost 100 gas, not 25
+  "255 PUSHINT EXPLODEVAR"           ;; (fun, arg_1, arg_2, ..., arg_n, n)
+  "DUP INC ROLLX"                    ;; (arg_1, arg_2, ..., arg_n, n, fun)
+  "<{"
+    "<{"                             ;; <- normal execution
+      "save-gas-remaining"
+      "EXECUTE"
+      "compute-gas-used"             ;; <- it is important to call it just after EXECUTE, so we don't count additional commands
+      "DEPTH DEC ROLLREVX"           ;; (gas_used, res_1, res_2, ..., res_k)
+      "DEPTH DEC TUPLEVAR"           ;; (gas_used, [res_1, res_2, ..., res_k])
+      "ZERO ROTREV"                  ;; (exit_code = 0, gas_used, [res..])
+    "}> PUSHCONT"
+    "<{"                             ;; <- exception handler
+      "compute-gas-used"             ;; (exception_info, exit_code, gas_used)
+      "ROT DROP NIL"                 ;; (exit_code, gas_used, [])
+    "}> PUSHCONT"
+    "TRY"
+  "}> PUSHCONT"                      ;; (args.., n, fun, func_with_exception_wrapper)
+  "ROT INC -1 PUSHINT"               ;; (args.., fun, func_with_exception_wrapper, n + 1, -1)
+  "CALLXVARARGS"                     ;; (exit_code, gas_used, [res..])
+;
+
+forall F, A, R -> (int, R) gas::invoke_method(F fun, A args) impure method_id {
+  (int exit_code, int gas_used, R return_values) = gas::invoke_method_full(fun, args);
+  throw_if(exit_code, (exit_code != 0) & (exit_code != 1));
+  return (gas_used, return_values);
+}
+
+forall F, A -> int invoke_gas(F fun, A args) impure method_id {
+  (int exit_code, int gas_used, _) = gas::invoke_method_full(fun, args);
+  throw_if(exit_code, (exit_code != 0) & (exit_code != 1));
+  return gas_used;
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+int add(int a, int b) asm "ADD";
+int mul(int a, int b) asm "MUL";
+
+int mul_mod(int a, int b, int m) inline_ref {
+  (_, int r) = muldivmod(a % m, b % m, m);
+  return r;
+}
+int mul_mod_better(int a, int b, int m) inline_ref {
+  (_, int r) = muldivmod(a, b, m);
+  return r;
+}
+int mul_mod_best(int a, int b, int m) asm "x{A988} s,";
+
+
+int __test_addition_short() {
+  return invoke_gas(add, [5, 3]);
+}
+int __test_addition_128() {
+  return invoke_gas(add, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125)]);
+}
+
+
+int __test_multiplication_short() {
+  return invoke_gas(mul, [5, 3]);
+}
+int __test_multiplication_128() {
+  return invoke_gas(mul, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125)]);
+}
+
+
+int __test_modulo_multiplication_short() {
+  return invoke_gas(mul_mod, [5, 3, 7]);
+}
+int __test_multiplication_128_mod_16() {
+  return invoke_gas(mul_mod, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), 65535]);
+}
+int __test_multiplication_128_mod_25519() {
+  return invoke_gas(mul_mod, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), (1 << 255) + 19]);
+}
+
+
+int __test_better_modulo_multiplication_short() {
+  return invoke_gas(mul_mod_better, [5, 3, 7]);
+}
+int __test_better_multiplication_128_mod_16() {
+  return invoke_gas(mul_mod_better, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), 65535]);
+}
+int __test_better_multiplication_128_mod_25519() {
+  return invoke_gas(mul_mod_better, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), (1 << 255) + 19]);
+}
+
+
+int __test_best_modulo_multiplication_short() {
+  return invoke_gas(mul_mod_best, [5, 3, 7]);
+}
+int __test_best_multiplication_128_mod_16() {
+  return invoke_gas(mul_mod_best, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), 65535]);
+}
+int __test_best_multiplication_128_mod_25519() {
+  return invoke_gas(mul_mod_best, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), (1 << 255) + 19]);
+}
+
+int __test_six() {
+  return 0xA;
+}

@@ -1,0 +1,6 @@
+contract:
+  func:
+    - func/code.fc
+  tests:
+    - tests/tests.fc
+  
