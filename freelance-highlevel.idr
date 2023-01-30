@@ -12,6 +12,22 @@ data UintSeq : Nat -> Type where
   UintSeqLow  : (bits : Nat) -> UintSeq bits -> UintSeq (S bits)
   UintSeqHigh : (bits : Nat) -> UintSeq bits -> UintSeq (S bits)
 
+using (n : Nat)
+  Eq (UintSeq n) where
+    (==)  UintSeqVoid       UintSeqVoid      = True
+    (==) (UintSeqLow _ a)  (UintSeqLow _ b)  = a == b
+    (==) (UintSeqHigh _ _) (UintSeqLow _ _)  = False
+    (==) (UintSeqLow _ _)  (UintSeqHigh _ _) = False
+    (==) (UintSeqHigh _ a) (UintSeqHigh _ b) = a == b
+  
+  Ord (UintSeq n) where
+    compare  UintSeqVoid       UintSeqVoid      = EQ
+    compare (UintSeqLow _ a)  (UintSeqLow _ b)  = compare a b
+    compare (UintSeqHigh _ _) (UintSeqLow _ _)  = GT
+    compare (UintSeqLow _ _)  (UintSeqHigh _ _) = LT
+    compare (UintSeqHigh _ a) (UintSeqHigh _ b) = compare a b
+
+
 seq_to_bits : (n : Nat) -> UintSeq n -> List Nat
 seq_to_bits Z     UintSeqVoid         = Nil
 seq_to_bits (S n) (UintSeqLow n low)  = 0 :: (seq_to_bits n low)
@@ -23,6 +39,14 @@ bits_to_nat (v :: old) = (bits_to_nat old) + (bits_to_nat old) + v
 
 stn : (n : Nat) -> UintSeq n -> Nat
 stn n v = bits_to_nat (reverse (seq_to_bits n v))
+
+build_zero_uint_seq : (n : Nat) -> UintSeq n
+build_zero_uint_seq Z     = UintSeqVoid
+build_zero_uint_seq (S k) = UintSeqLow _ (build_zero_uint_seq k)
+
+build_high_uint_seq : (n : Nat) -> UintSeq n
+build_high_uint_seq Z     = UintSeqVoid
+build_high_uint_seq (S k) = UintSeqHigh _ (build_high_uint_seq k)
 
 --------------------------------------------------------------------------------
 ----  TON-specific types
@@ -56,6 +80,16 @@ data Contract : Type where
   Uninit : (addr : MessageAddr) -> Contract
   Init   : ContractState cs => (addr : MessageAddr) -> (st : cs) -> (balance : Nat) -> Contract
 
+apply_message : ContractState cs => cs -> TxMessage -> (NextState, List TxMessage)
+apply_message state msg = (to_code state) state msg
+
+apply_wrapped : NextState -> TxMessage -> (NextState, List TxMessage)
+apply_wrapped (MkNextState wrapped_state) msg = (to_code wrapped_state) wrapped_state msg
+
+bounce_typical : ContractState cs => cs -> TxMessage -> (NextState, List TxMessage)
+bounce_typical state (IntMessage True src self coins _ body)  = (MkNextState state, [IntMessage False self src coins Nothing $ (seq_to_bits _ $ build_high_uint_seq 32) ++ body])
+bounce_typical state _                                        = (MkNextState state, Nil)
+
 --------------------------------------------------------------------------------
 ----  Job contract
 --------------------------------------------------------------------------------
@@ -71,6 +105,9 @@ ContractState JobContractStateUnlocked where
                         jccode
   to_data cur_state = let JcsUnlocked jccode jcdata = cur_state in
                         jcdata
+
+jccu_typical : JobContractStateUnlocked -> TxMessage -> (NextState, List TxMessage)
+jccu_typical = bounce_typical
 
 ----
 
@@ -102,35 +139,12 @@ ContractState JobContractStateWorking where
 
 ----
 
-apply_message : ContractState cs => cs -> TxMessage -> (NextState, List TxMessage)
-apply_message state msg = (to_code state) state msg
-
-
-apply_message_jcsu_wrapper : JobContractStateUnlocked -> TxMessage -> (NextState, List TxMessage)
-apply_message_jcsu_wrapper state msg = apply_message state msg
-
-build_hang_contract : JobContractStateUnlocked
-build_hang_contract = JcsUnlocked apply_message_jcsu_wrapper ()
-
-build_zero_uint_seq : (n : Nat) -> UintSeq n
-build_zero_uint_seq Z     = UintSeqVoid
-build_zero_uint_seq (S k) = UintSeqLow _ (build_zero_uint_seq k)
-
-build_sample_addr : MessageAddr
-build_sample_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) (build_zero_uint_seq 256)
-
-build_sample_msg : TxMessage
-build_sample_msg  = IntMessage False build_sample_addr build_sample_addr (build_zero_uint_seq 120) Nothing Nil
-
-
-hang : (NextState, List TxMessage)
-hang = apply_message build_hang_contract build_sample_msg
-
-test_to_string : (NextState, List TxMessage) -> String
-test_to_string (new_state, messages) = show (length messages)
+build_contract : NextState
+build_contract = MkNextState $ JcsUnlocked jccu_typical ()
 
 ----
 
 main : IO ()
 main = do putStrLn "Theorems proved"
-          putStrLn (test_to_string hang)
+          putStrLn "Starting transactions loop"
+          putStrLn "Transactions loop finished"
