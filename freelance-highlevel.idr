@@ -4,6 +4,18 @@ module Main
 
 
 --------------------------------------------------------------------------------
+----  Std extensions
+--------------------------------------------------------------------------------
+
+lookupBy : (a -> b -> Bool) -> a -> List (b, v) -> Maybe v
+lookupBy p e []      = Nothing
+lookupBy p e ((l, r) :: xs) =
+  if p e l then
+    Just r
+  else
+    lookupBy p e xs
+
+--------------------------------------------------------------------------------
 ----  Arithmetic types
 --------------------------------------------------------------------------------
 
@@ -58,6 +70,10 @@ data Anycast : Type where
 data MessageAddr : Type where
   MsgAddressIntStd : (Maybe Anycast) -> (workchain : UintSeq 8)  -> (hash_part : UintSeq 256) -> MessageAddr
   -- MsgAddressIntVar : (Maybe Anycast) -> (addr_len : UintSeq 9)   -> (workchain : UintSeq 32)  -> (hash_part : UintSeq (stn 9 addr_len)) -> MessageAddr
+
+Eq MessageAddr where
+  (==) (MsgAddressIntStd Nothing wc1 hp1) (MsgAddressIntStd Nothing wc2 hp2) = (wc1 == wc2) && (hp1 == hp2)
+  (==) _ _ = False
 
 data TxMessage : Type where
   IntMessage    : (bounce : Bool) -> (src : MessageAddr) -> (dest : MessageAddr) -> (coins : UintSeq 120) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
@@ -141,6 +157,21 @@ ContractState JobContractStateWorking where
 
 build_contract : NextState
 build_contract = MkNextState $ JcsUnlocked jccu_typical ()
+
+data ContractStorage = MkStorage (List (MessageAddr, NextState))
+lookup_contract : ContractStorage -> MessageAddr -> Maybe NextState
+lookup_contract (MkStorage contracts) addr = lookupBy f () contracts where
+  f : () -> MessageAddr -> Bool
+  f _ some_addr  =  addr == some_addr
+
+extract_contract : ContractStorage -> MessageAddr -> (Maybe NextState, ContractStorage)
+extract_contract (MkStorage Nil)     addr = (Nothing, MkStorage Nil)
+extract_contract (MkStorage (x::xs)) addr = let (gaddr, v) = x in
+                                              if gaddr == addr then
+                                                (Just v, MkStorage xs)
+                                              else
+                                                let (loaded, MkStorage storage) = extract_contract (MkStorage xs) addr in
+                                                  (loaded, MkStorage ((gaddr,v) :: storage))
 
 ----
 
