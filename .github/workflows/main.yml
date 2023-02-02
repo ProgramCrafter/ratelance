@@ -11,10 +11,10 @@ jobs:
       uses: actions/checkout@v3.3.0
     
     - name: Install Brew
-      run: sudo apt-get install linuxbrew-wrapper
+      run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
     - name: Install Idris
-      run: brew install idris2
+      run: /home/linuxbrew/.linuxbrew/bin/brew install idris2
     
     - name: Compile formal description
       run: idris freelance-highlevel.idr -o contracts-fd
