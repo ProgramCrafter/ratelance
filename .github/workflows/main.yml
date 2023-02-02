@@ -7,20 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
     - name: Install Cabal
-    - uses: actions/checkout@v3
-    - run: sudo apt-get install cabal-install make
-    - run: cabal update
+      run: |
+        sudo apt-get install cabal-install make
+        cabal update
     
     - name: Install Idris
-    - uses: actions/checkout@v3
-    - run: cabal install idris
+      run: cabal install idris
     
     - name: Compile formal description
-    - uses: actions/checkout@v3
-    - run: idris freelance-highlevel.idr -o contracts-fd
+      run: idris freelance-highlevel.idr -o contracts-fd
     
     - name: Test executable
-    - uses: actions/checkout@v3
-    - run: ./contracts-fd
+      run: ./contracts-fd
     
