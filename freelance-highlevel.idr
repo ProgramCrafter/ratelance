@@ -1,6 +1,6 @@
 module Main
 
-%default partial
+%default covering
 
 
 --------------------------------------------------------------------------------
@@ -75,8 +75,12 @@ Eq MessageAddr where
   (==) (MsgAddressIntStd Nothing wc1 hp1) (MsgAddressIntStd Nothing wc2 hp2) = (wc1 == wc2) && (hp1 == hp2)
   (==) _ _ = False
 
+data JobMsgBody : Type where
+  JumUpdate : (new_desc : Type) -> (new_value : UintSeq 120) -> (new_poster_key : UintSeq 256) -> JobMsgBody
+  Bounce    : JobMsgBody -> JobMsgBody
+
 data TxMessage : Type where
-  IntMessage    : (bounce : Bool) -> (src : MessageAddr) -> (dest : MessageAddr) -> (coins : UintSeq 120) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
+  IntMessage    : (bounce : Bool) -> (src : MessageAddr) -> (dest : MessageAddr) -> (coins : UintSeq 120) -> (init : Maybe ()) -> (body : JobMsgBody) -> TxMessage
   ExtInMessage  : (src : MessageAddr) -> (dest : MessageAddr) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
   ExtOutMessage : (src : MessageAddr) -> (dest : MessageAddr) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
 
@@ -102,9 +106,12 @@ apply_message state msg = (to_code state) state msg
 apply_wrapped : NextState -> TxMessage -> (NextState, List TxMessage)
 apply_wrapped (MkNextState wrapped_state) msg = (to_code wrapped_state) wrapped_state msg
 
+build_bounce : TxMessage -> List TxMessage
+build_bounce (IntMessage True src self coins _ body) = [IntMessage False self src coins Nothing $ Bounce body]
+build_bounce _                                       = Nil
+
 bounce_typical : ContractState cs => cs -> TxMessage -> (NextState, List TxMessage)
-bounce_typical state (IntMessage True src self coins _ body)  = (MkNextState state, [IntMessage False self src coins Nothing $ (seq_to_bits _ $ build_high_uint_seq 32) ++ body])
-bounce_typical state _                                        = (MkNextState state, Nil)
+bounce_typical state msg = (MkNextState state, build_bounce msg)
 
 --------------------------------------------------------------------------------
 ----  Job contract
@@ -158,20 +165,43 @@ ContractState JobContractStateWorking where
 build_contract : NextState
 build_contract = MkNextState $ JcsUnlocked jccu_typical ()
 
-data ContractStorage = MkStorage (List (MessageAddr, NextState))
-lookup_contract : ContractStorage -> MessageAddr -> Maybe NextState
-lookup_contract (MkStorage contracts) addr = lookupBy f () contracts where
+-- ContractStorage = (List (MessageAddr, NextState))
+lookup_contract : (List (MessageAddr, NextState)) -> MessageAddr -> Maybe NextState
+lookup_contract contracts addr = lookupBy f () contracts where
   f : () -> MessageAddr -> Bool
   f _ some_addr  =  addr == some_addr
 
-extract_contract : ContractStorage -> MessageAddr -> (Maybe NextState, ContractStorage)
-extract_contract (MkStorage Nil)     addr = (Nothing, MkStorage Nil)
-extract_contract (MkStorage (x::xs)) addr = let (gaddr, v) = x in
-                                              if gaddr == addr then
-                                                (Just v, MkStorage xs)
-                                              else
-                                                let (loaded, MkStorage storage) = extract_contract (MkStorage xs) addr in
-                                                  (loaded, MkStorage ((gaddr,v) :: storage))
+extract_contract : (List (MessageAddr, NextState)) -> MessageAddr -> (Maybe NextState, (List (MessageAddr, NextState)))
+extract_contract Nil     addr = (Nothing, Nil)
+extract_contract (x::xs) addr = let (gaddr, v) = x in
+                                  if gaddr == addr then
+                                    (Just v, xs)
+                                  else
+                                    let (loaded, storage) = extract_contract xs addr in
+                                      (loaded, (gaddr,v) :: storage)
+
+main_loop : List TxMessage -> List (MessageAddr, NextState) -> (List TxMessage, List (MessageAddr, NextState))
+main_loop Nil            contracts = (Nil, contracts)
+main_loop (msg :: later) contracts = main_loop later contracts
+
+
+
+theorem_main_loop_stops : (queue : List TxMessage) -> (contracts : List (MessageAddr, NextState)) -> (fst $ main_loop queue contracts) = Nil
+theorem_main_loop_stops Nil            _ = Refl
+theorem_main_loop_stops (msg :: later) c = theorem_main_loop_stops later c
+
+----
+
+job_unlocked : JobContractStateUnlocked -> TxMessage -> (NextState, List TxMessage)
+job_unlocked state (IntMessage True src self coins _ body) = case believe_me $ to_data state of
+  (JcdUnlocked poster desc value poster_key) => case body of
+    Bounce _ => (MkNextState state, Nil)
+    (JumUpdate new_desc new_value new_poster_key) => case poster == src of
+      True  => ((MkNextState $ JcsUnlocked job_unlocked $ believe_me $ JcdUnlocked poster new_desc new_value new_poster_key), Nil)
+      False => (MkNextState state, build_bounce (IntMessage True src self coins Nothing body))
+    _ => (MkNextState state, build_bounce (IntMessage True src self coins Nothing body))
+  _                                          => (MkNextState state, Nil)
+job_unlocked state _ = (MkNextState state, Nil)
 
 ----
 
