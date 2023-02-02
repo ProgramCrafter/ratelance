@@ -1,0 +1,22 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  compile_idris:
+    name: Formal verification
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Install Cabal
+    - run: sudo apt-get install cabal-install make
+    - run: cabal update
+    
+    - name: Install Idris
+    - run: cabal install idris
+    
+    - name: Compile formal description
+    - run: idris freelance-highlevel.idr -o contracts-fd
+    
+    - name: Test executable
+    - run: ./contracts-fd
+    
