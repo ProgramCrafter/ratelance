@@ -8,6 +8,7 @@ jobs:
     
     steps:
     - name: Install Cabal
+    - uses: actions/checkout@v3
     - run: sudo apt-get install cabal-install make
     - run: cabal update
     
