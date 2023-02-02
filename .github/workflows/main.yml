@@ -10,13 +10,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3.3.0
     
-    - name: Install Cabal
+    - name: Install Brew
       run: |
-        sudo apt-get install cabal-install make
-        cabal update
+        sudo apt install linuxbrew-wrapper
     
     - name: Install Idris
-      run: cabal install idris
+      run: brew install idris2
     
     - name: Compile formal description
       run: idris freelance-highlevel.idr -o contracts-fd
