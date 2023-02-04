@@ -42,6 +42,6 @@ jobs:
     - name: Dump .TTM file
       run: cat ./build/ttc/freelance-highlevel.ttm
     
-    # - name: Test executable
-    #  run: ./build/exec/contracts-fd
+    - name: Test executable
+      run: /home/linuxbrew/.linuxbrew/bin/scheme-script ./build/exec/contracts-fd_app/contracts-fd.ss
     
