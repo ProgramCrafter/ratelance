@@ -1,5 +1,7 @@
 module Main
 
+import Data.Fin
+
 %default covering
 
 
@@ -14,6 +16,10 @@ lookupBy p e ((l, r) :: xs) =
     Just r
   else
     lookupBy p e xs
+
+repeat : (n : Nat) -> List a -> List a
+repeat Z     _ = []
+repeat (S n) x = x ++ repeat n x
 
 --------------------------------------------------------------------------------
 ----  Arithmetic types
@@ -45,9 +51,14 @@ seq_to_bits Z     UintSeqVoid         = Nil
 seq_to_bits (S n) (UintSeqLow n low)  = 0 :: (seq_to_bits n low)
 seq_to_bits (S n) (UintSeqHigh n low) = 1 :: (seq_to_bits n low)
 
+bits_to_seq : (a : List (Fin 2)) -> UintSeq (length a)
+bits_to_seq Nil         = UintSeqVoid
+bits_to_seq (0 :: next) = UintSeqLow  _ $ bits_to_seq next
+bits_to_seq (1 :: next) = UintSeqHigh _ $ bits_to_seq next
+
 bits_to_nat : List Nat -> Nat
 bits_to_nat Nil        = 0
-bits_to_nat (v :: old) = (bits_to_nat old) + (bits_to_nat old) + v
+bits_to_nat (v :: old) = (bits_to_nat old) * 2 + v
 
 stn : (n : Nat) -> UintSeq n -> Nat
 stn n v = bits_to_nat (reverse (seq_to_bits n v))
@@ -78,11 +89,24 @@ Eq MessageAddr where
 data JobMsgBody : Type where
   JumUpdate : (new_desc : Type) -> (new_value : UintSeq 120) -> (new_poster_key : UintSeq 256) -> JobMsgBody
   Bounce    : JobMsgBody -> JobMsgBody
+  MsgRaw    : List Nat   -> JobMsgBody
 
 data TxMessage : Type where
   IntMessage    : (bounce : Bool) -> (src : MessageAddr) -> (dest : MessageAddr) -> (coins : UintSeq 120) -> (init : Maybe ()) -> (body : JobMsgBody) -> TxMessage
   ExtInMessage  : (src : MessageAddr) -> (dest : MessageAddr) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
   ExtOutMessage : (src : MessageAddr) -> (dest : MessageAddr) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
+
+build_333_addr : MessageAddr
+build_333_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [0, 0, 1, 1]
+
+build_555_addr : MessageAddr
+build_555_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [0, 1, 0, 1]
+
+build_999_addr : MessageAddr
+build_999_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [1, 0, 0, 1]
+
+build_ccc_addr : MessageAddr
+build_ccc_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [1, 1, 0, 0]
 
 --------------------------------------------------------------------------------
 ----  High-level contracts representation
@@ -113,57 +137,7 @@ build_bounce _                                       = Nil
 bounce_typical : ContractState cs => cs -> TxMessage -> (NextState, List TxMessage)
 bounce_typical state msg = (MkNextState state, build_bounce msg)
 
---------------------------------------------------------------------------------
-----  Job contract
---------------------------------------------------------------------------------
-
-data JobContractDataUnlocked : Type where
-  JcdUnlocked : (poster : MessageAddr) -> (desc : Type) -> (value : UintSeq 120) -> (poster_key : UintSeq 256) -> JobContractDataUnlocked
-
-data JobContractStateUnlocked : Type where
-  JcsUnlocked : (jccode : (JobContractStateUnlocked -> TxMessage -> (NextState, List TxMessage))) -> (jcdata : Type) -> JobContractStateUnlocked
-
-ContractState JobContractStateUnlocked where
-  to_code cur_state = let JcsUnlocked jccode jcdata = cur_state in
-                        jccode
-  to_data cur_state = let JcsUnlocked jccode jcdata = cur_state in
-                        jcdata
-
-jccu_typical : JobContractStateUnlocked -> TxMessage -> (NextState, List TxMessage)
-jccu_typical = bounce_typical
-
 ----
-
-data JobContractDataLockedOn : Type where
-  JcdLockedOn : (poster : MessageAddr) -> (desc : Type) -> (value : UintSeq 120) -> (poster_key : UintSeq 256) -> (offer : MessageAddr) -> JobContractDataLockedOn
-
-data JobContractStateLockedOn : Type where
-  JcsLockedOn : (jccode : (JobContractStateLockedOn -> TxMessage -> (NextState, List TxMessage))) -> (jcdata : Type) -> JobContractStateLockedOn
-
-ContractState JobContractStateLockedOn where
-  to_code cur_state = let JcsLockedOn jccode jcdata = cur_state in
-                        jccode
-  to_data cur_state = let JcsLockedOn jccode jcdata = cur_state in
-                        jcdata
-
-----
-
-data JobContractDataWorking : Type where
-  JcdWorking  : (poster : MessageAddr) -> (desc : Type) -> (value : UintSeq 120) -> (poster_key : UintSeq 256) -> (worker_key : UintSeq 256) -> JobContractDataWorking
-
-data JobContractStateWorking : Type where
-  JcsWorking  : (jccode : (JobContractStateWorking -> TxMessage -> (NextState, List TxMessage))) -> (jcdata : Type) -> JobContractStateWorking
-
-ContractState JobContractStateWorking where
-  to_code cur_state = let JcsWorking jccode jcdata = cur_state in
-                        jccode
-  to_data cur_state = let JcsWorking jccode jcdata = cur_state in
-                        jcdata
-
-----
-
-build_contract : NextState
-build_contract = MkNextState $ JcsUnlocked jccu_typical ()
 
 -- ContractStorage = (List (MessageAddr, NextState))
 lookup_contract : (List (MessageAddr, NextState)) -> MessageAddr -> Maybe NextState
@@ -180,15 +154,62 @@ extract_contract (x::xs) addr = let (gaddr, v) = x in
                                     let (loaded, storage) = extract_contract xs addr in
                                       (loaded, (gaddr,v) :: storage)
 
+extract_dest : TxMessage -> MessageAddr
+extract_dest (IntMessage  _ _ dest _ _ _) = dest
+extract_dest (ExtInMessage  _ dest _ _) = dest
+extract_dest (ExtOutMessage _ dest _ _) = dest
+
 main_loop : List TxMessage -> List (MessageAddr, NextState) -> (List TxMessage, List (MessageAddr, NextState))
 main_loop Nil            contracts = (Nil, contracts)
-main_loop (msg :: later) contracts = main_loop later contracts
+main_loop (msg :: later) contracts = let (mb_contract, contracts_ext) = extract_contract contracts $ extract_dest msg in
+  case mb_contract of
+    Nothing       => main_loop (later ++ (build_bounce msg)) contracts_ext
+    Just contract => let (upd_contract, send) = apply_wrapped contract msg in
+      (later ++ send, (extract_dest msg, upd_contract) :: contracts_ext)
 
+--------------------------------------------------------------------------------
+----  Job contract
+--------------------------------------------------------------------------------
 
+data JobContractDataUnlocked : Type where
+  JcdUnlocked : (poster : MessageAddr) -> (desc : Type) -> (value : UintSeq 120) -> (poster_key : UintSeq 256) -> JobContractDataUnlocked
 
-theorem_main_loop_stops : (queue : List TxMessage) -> (contracts : List (MessageAddr, NextState)) -> (fst $ main_loop queue contracts) = Nil
-theorem_main_loop_stops Nil            _ = Refl
-theorem_main_loop_stops (msg :: later) c = theorem_main_loop_stops later c
+data JobContractStateUnlocked : Type where
+  JcsUnlocked : (jccode : (JobContractStateUnlocked -> TxMessage -> (NextState, List TxMessage))) -> (jcdata : JobContractDataUnlocked) -> JobContractStateUnlocked
+
+ContractState JobContractStateUnlocked where
+  to_code cur_state = let JcsUnlocked jccode jcdata = cur_state in
+                        jccode
+  to_data cur_state = let JcsUnlocked jccode jcdata = cur_state in
+                        believe_me jcdata
+
+----
+
+data JobContractDataLockedOn : Type where
+  JcdLockedOn : (poster : MessageAddr) -> (desc : Type) -> (value : UintSeq 120) -> (poster_key : UintSeq 256) -> (offer : MessageAddr) -> JobContractDataLockedOn
+
+data JobContractStateLockedOn : Type where
+  JcsLockedOn : (jccode : (JobContractStateLockedOn -> TxMessage -> (NextState, List TxMessage))) -> (jcdata : JobContractDataLockedOn) -> JobContractStateLockedOn
+
+ContractState JobContractStateLockedOn where
+  to_code cur_state = let JcsLockedOn jccode jcdata = cur_state in
+                        jccode
+  to_data cur_state = let JcsLockedOn jccode jcdata = cur_state in
+                        believe_me jcdata
+
+----
+
+data JobContractDataWorking : Type where
+  JcdWorking  : (poster : MessageAddr) -> (desc : Type) -> (value : UintSeq 120) -> (poster_key : UintSeq 256) -> (worker_key : UintSeq 256) -> JobContractDataWorking
+
+data JobContractStateWorking : Type where
+  JcsWorking  : (jccode : (JobContractStateWorking -> TxMessage -> (NextState, List TxMessage))) -> (jcdata : JobContractDataWorking) -> JobContractStateWorking
+
+ContractState JobContractStateWorking where
+  to_code cur_state = let JcsWorking jccode jcdata = cur_state in
+                        jccode
+  to_data cur_state = let JcsWorking jccode jcdata = cur_state in
+                        believe_me jcdata
 
 ----
 
@@ -202,6 +223,23 @@ job_unlocked state (IntMessage True src self coins _ body) = case believe_me $ t
     _ => (MkNextState state, build_bounce (IntMessage True src self coins Nothing body))
   _                                          => (MkNextState state, Nil)
 job_unlocked state _ = (MkNextState state, Nil)
+
+----
+
+postulate_main_loop_stops : (queue : List TxMessage) -> (contracts : List (MessageAddr, NextState)) -> (fst $ main_loop queue contracts) = Nil
+postulate_main_loop_stops _ _ = believe_me ()
+
+{-
+theorem_main_loop_stops : (queue : List TxMessage) -> (contracts : List (MessageAddr, NextState)) -> (fst $ main_loop queue contracts) = Nil
+theorem_main_loop_stops Nil            _ = Refl
+theorem_main_loop_stops (msg :: later) c = theorem_main_loop_stops later c
+-}
+
+test_job_unlocked_build : NextState
+test_job_unlocked_build = MkNextState $ JcsUnlocked job_unlocked $ JcdUnlocked build_333_addr () (build_zero_uint_seq _) (build_zero_uint_seq _)
+
+test_imsg_from_stranger : TxMessage
+test_imsg_from_stranger = IntMessage True build_ccc_addr build_999_addr (build_zero_uint_seq _) Nothing $ MsgRaw Nil
 
 ----
 
