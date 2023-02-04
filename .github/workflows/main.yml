@@ -37,10 +37,10 @@ jobs:
       run: tree -D
     
     - name: Dump .TTC file
-      run: ./build/ttc/freelance-highlevel.ttc
+      run: cat ./build/ttc/freelance-highlevel.ttc
     
     - name: Dump .TTM file
-      run: ./build/ttc/freelance-highlevel.ttm
+      run: cat ./build/ttc/freelance-highlevel.ttm
     
     - name: Test executable
       run: ./build/exec/contracts-fd
