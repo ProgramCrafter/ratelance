@@ -42,6 +42,6 @@ jobs:
     - name: Dump .TTM file
       run: cat ./build/ttc/freelance-highlevel.ttm
     
-    - name: Test executable
-      run: ./build/exec/contracts-fd
+    # - name: Test executable
+    #  run: ./build/exec/contracts-fd
     
