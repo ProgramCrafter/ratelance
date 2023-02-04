@@ -22,7 +22,10 @@ jobs:
         find /home/linuxbrew/ -name "*idris2*"
     
     - name: Compile formal description
-      run: idris2 freelance-highlevel.idr -o contracts-fd
+      run: /home/linuxbrew/.linuxbrew/bin/idris2 ./freelance-highlevel.idr -o ./contracts-fd
+    
+    - name: Show directory to locate executable (to speed up trial-and-failure loop)
+      run: tree -D
     
     - name: Test executable
       run: ./contracts-fd
