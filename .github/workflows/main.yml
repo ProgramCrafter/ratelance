@@ -10,10 +10,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3.3.0
     
+    - name: Cache LinuxBrew
+      id: cache-linuxbrew
+      uses: actions/cache@v3
+      with:
+        path: /home/linuxbrew/
+        key: ${{ runner.os }}-${{ matrix.ghc }}
+    
     - name: Install Brew
+      if: steps.cache-linuxbrew.outputs.cache-hit != 'true'
       run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
     - name: Install Idris
+      if: steps.cache-linuxbrew.outputs.cache-hit != 'true'
       run: /home/linuxbrew/.linuxbrew/bin/brew install idris2
     
     - name: Search for Idris (to speed up trial-and-failure loop)
@@ -27,6 +36,12 @@ jobs:
     - name: Show directory to locate executable (to speed up trial-and-failure loop)
       run: tree -D
     
+    - name: Dump .TTC file
+      run: ./build/ttc/freelance-highlevel.ttc
+    
+    - name: Dump .TTM file
+      run: ./build/ttc/freelance-highlevel.ttm
+    
     - name: Test executable
-      run: ./contracts-fd
+      run: ./build/exec/contracts-fd
     
