@@ -16,8 +16,13 @@ jobs:
     - name: Install Idris
       run: /home/linuxbrew/.linuxbrew/bin/brew install idris2
     
+    - name: Search for Idris (to speed up trial-and-failure loop)
+      run: |
+        echo $PATH
+        find /home/linuxbrew/ -name "*idris2*"
+    
     - name: Compile formal description
-      run: idris freelance-highlevel.idr -o contracts-fd
+        idris2 freelance-highlevel.idr -o contracts-fd
     
     - name: Test executable
       run: ./contracts-fd
