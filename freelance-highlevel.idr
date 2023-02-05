@@ -87,26 +87,17 @@ Eq MessageAddr where
   (==) _ _ = False
 
 data JobMsgBody : Type where
-  JumUpdate : (new_desc : Type) -> (new_value : UintSeq 120) -> (new_poster_key : UintSeq 256) -> JobMsgBody
-  Bounce    : JobMsgBody -> JobMsgBody
-  MsgRaw    : List Nat   -> JobMsgBody
+  JumUpdate  : (new_desc : Type) -> (new_value : UintSeq 120) -> (new_poster_key : UintSeq 256) -> JobMsgBody
+  JumLock    : (offer : MessageAddr)       -> JobMsgBody
+  JlmConfirm : (worker_key  : UintSeq 256) -> JobMsgBody
+  JwmFinish  : (worker_addr : MessageAddr) -> (sig_poster : UintSeq 512) -> (sig_worker : UintSeq 512) -> JobMsgBody
+  Bounce     : JobMsgBody -> JobMsgBody
+  MsgRaw     : List Nat   -> JobMsgBody
 
 data TxMessage : Type where
   IntMessage    : (bounce : Bool) -> (src : MessageAddr) -> (dest : MessageAddr) -> (coins : UintSeq 120) -> (init : Maybe ()) -> (body : JobMsgBody) -> TxMessage
   ExtInMessage  : (src : MessageAddr) -> (dest : MessageAddr) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
   ExtOutMessage : (src : MessageAddr) -> (dest : MessageAddr) -> (init : Maybe ()) -> (body : List Nat) -> TxMessage
-
-build_333_addr : MessageAddr
-build_333_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [0, 0, 1, 1]
-
-build_555_addr : MessageAddr
-build_555_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [0, 1, 0, 1]
-
-build_999_addr : MessageAddr
-build_999_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [1, 0, 0, 1]
-
-build_ccc_addr : MessageAddr
-build_ccc_addr = MsgAddressIntStd Nothing (build_zero_uint_seq 8) $ bits_to_seq $ repeat 64 [1, 1, 0, 0]
 
 --------------------------------------------------------------------------------
 ----  High-level contracts representation
@@ -171,6 +162,15 @@ main_loop (msg :: later) contracts = let (mb_contract, contracts_ext) = extract_
 ----  Job contract
 --------------------------------------------------------------------------------
 
+data JobContractStateDestroyed : Type where
+  JcsDestroyed : JobContractStateDestroyed
+
+ContractState JobContractStateDestroyed where
+  to_code _ = bounce_typical
+  to_data _ = believe_me ()
+
+----
+
 data JobContractDataUnlocked : Type where
   JcdUnlocked : (poster : MessageAddr) -> (desc : Type) -> (value : UintSeq 120) -> (poster_key : UintSeq 256) -> JobContractDataUnlocked
 
@@ -213,33 +213,63 @@ ContractState JobContractStateWorking where
 
 ----
 
+job_working : JobContractStateWorking -> TxMessage -> (NextState, List TxMessage)
+job_working state (IntMessage bounce src self coins _ body) = case believe_me $ to_data state of
+  (JcdWorking poster desc value poster_key worker_key) => case body of
+    Bounce _ => (MkNextState state, Nil)
+    JwmFinish worker poster_sig worker_sig => case True of  -- TODO: check signatures
+      True  => (MkNextState JcsDestroyed, [IntMessage False self worker value Nothing $ MsgRaw []])
+      False => (MkNextState state, build_bounce (IntMessage bounce src self coins Nothing body))
+    _ => (MkNextState state, build_bounce (IntMessage bounce src self coins Nothing body))
+  _ => (MkNextState state, Nil)
+job_working state _ = (MkNextState state, Nil)
+
+
+job_locked_on : JobContractStateLockedOn -> TxMessage -> (NextState, List TxMessage)
+job_locked_on state (IntMessage bounce src self coins _ body) = case believe_me $ to_data state of
+  (JcdLockedOn poster desc value poster_key offer) => case body of
+    Bounce _ => (MkNextState state, Nil)
+    (JlmConfirm worker_key) => case offer == src of
+      True  => ((MkNextState $ JcsWorking job_working $ believe_me $ JcdWorking poster desc value poster_key worker_key), Nil)
+      False => (MkNextState state, build_bounce (IntMessage bounce src self coins Nothing body))
+    _ => (MkNextState state, build_bounce (IntMessage bounce src self coins Nothing body))
+  _ => (MkNextState state, Nil)
+job_locked_on state _ = (MkNextState state, Nil)
+
+
 job_unlocked : JobContractStateUnlocked -> TxMessage -> (NextState, List TxMessage)
-job_unlocked state (IntMessage True src self coins _ body) = case believe_me $ to_data state of
+job_unlocked state (IntMessage bounce src self coins _ body) = case believe_me $ to_data state of
   (JcdUnlocked poster desc value poster_key) => case body of
     Bounce _ => (MkNextState state, Nil)
     (JumUpdate new_desc new_value new_poster_key) => case poster == src of
       True  => ((MkNextState $ JcsUnlocked job_unlocked $ believe_me $ JcdUnlocked poster new_desc new_value new_poster_key), Nil)
-      False => (MkNextState state, build_bounce (IntMessage True src self coins Nothing body))
-    _ => (MkNextState state, build_bounce (IntMessage True src self coins Nothing body))
-  _                                          => (MkNextState state, Nil)
+      False => (MkNextState state, build_bounce (IntMessage bounce src self coins Nothing body))
+    (JumLock offer) => case poster == src of
+      True  => ((MkNextState $ JcsLockedOn job_locked_on $ believe_me $ JcdLockedOn poster desc value poster_key offer), Nil)
+      False => (MkNextState state, build_bounce (IntMessage bounce src self coins Nothing body))
+    _ => (MkNextState state, build_bounce (IntMessage bounce src self coins Nothing body))
+  _ => (MkNextState state, Nil)
 job_unlocked state _ = (MkNextState state, Nil)
 
 ----
 
-postulate_main_loop_stops : (queue : List TxMessage) -> (contracts : List (MessageAddr, NextState)) -> (fst $ main_loop queue contracts) = Nil
-postulate_main_loop_stops _ _ = believe_me ()
-
 {-
-theorem_main_loop_stops : (queue : List TxMessage) -> (contracts : List (MessageAddr, NextState)) -> (fst $ main_loop queue contracts) = Nil
-theorem_main_loop_stops Nil            _ = Refl
-theorem_main_loop_stops (msg :: later) c = theorem_main_loop_stops later c
+check_invariant : NextState -> TxMessage -> Bool
+check_invariant state msg = state == (fst $ apply_wrapped state msg)
+
+build_ju : MessageAddr -> Type -> UintSeq 120 -> UintSeq 256 -> NextState
+build_ju poster desc value poster_key = MkNextState $ JcsUnlocked job_unlocked $ believe_me $ JcdUnlocked poster desc value poster_key
+
+theorem_ju_no_extin_processing : (cp : MessageAddr) -> (cd : Type) -> (cv : UintSeq 120) -> (cpk : UintSeq 256)
+                              -> (ExtInMessage ma mb mc md) -> (check_invariant (build_ju cp cd cv cpk) $ ExtInMessage ma mb mc md) = True
+theorem_ju_no_extin_processing _ _ _ _ _ = Refl
+
+theorem_ju_invariant_nonposter : (poster : MessageAddr) -> (any : MessageAddr)
+                              -> (cd : Type) -> (cv : UintSeq 120) -> (cpk : UintSeq 256)
+                              -> (
+                              -> Not (poster == any)
+                              -> (check_invariant (build_ju poster cd cv cpk) 
 -}
-
-test_job_unlocked_build : NextState
-test_job_unlocked_build = MkNextState $ JcsUnlocked job_unlocked $ JcdUnlocked build_333_addr () (build_zero_uint_seq _) (build_zero_uint_seq _)
-
-test_imsg_from_stranger : TxMessage
-test_imsg_from_stranger = IntMessage True build_ccc_addr build_999_addr (build_zero_uint_seq _) Nothing $ MsgRaw Nil
 
 ----
 
