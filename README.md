@@ -1,6 +1,6 @@
 # Ratelance
 
-<!-- TODO: add banner -->
+<img alt="Ratelance platform poster" src="https://repository-images.githubusercontent.com/595624687/47a85578-12e7-4e4c-a12c-8aae6c0a6c29" width="750" height="500">
 
 Ratelance is freelance platform that seeks to remove barriers between potential employers and workers.  
 Our goal is to create a secure, reliable and formally verified platform that makes it easy to delegate tasks.
