@@ -12,6 +12,11 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 - :lock: provide an encrypted communication channel and
 - :rocket: make it easy to complete the tasks!
 
+### Contact us
+
+- Read latest news: https://t.me/ratelance
+- Propose something, report a bug, etc: [issues](https://github.com/ProgramCrafter/ratelance/issues)
+
 ### Current state
 
 - `freelance-highlevel.idr`
