@@ -178,7 +178,7 @@ PROGRAM{
     DROP	//  in_msg bounceable sender
     x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  in_msg bounceable sender _13
     SDEQ	//  in_msg bounceable _14
-    IFJMP:<{	//  in_msg bounceable
+    IFNOTJMP:<{	//  in_msg bounceable
       NIP	//  bounceable
       IF:<{	// 
         100 THROW
