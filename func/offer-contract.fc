@@ -1,0 +1,89 @@
+#include "func/stdlib-ext.fc";
+#include "func/opcodes.fc";
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+cell         not_activated()       asm "b{}  s>c PUSHREF";
+cell         activated()           asm "b{1} s>c PUSHREF";
+(slice, int) load_u32_quiet(slice) asm "32 PLDUZ";
+
+const slice owner = "EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7"a;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+() recv_internal(cell in_msg_full, slice in_msg) {
+  slice in_msg_full = in_msg_full.begin_parse();
+  int bounceable = in_msg_full~load_uint(4) & 2;
+  slice sender = in_msg_full~load_msg_addr();
+  
+  if (equal_slices(sender, owner)) {
+    ;; contract must obey only owner's orders
+    ;; all other funds must be returned or forwarded to owner
+    
+    if (bounceable) {
+      throw(100);
+    } else {
+      send_raw_message(begin_cell()
+        .store_uint(0x10, 6)    ;; let money rest on owner's address even if it's unable to receive it
+        .store_slice(owner)
+        .store_uint(op::excesses, 4 + 107 + 32)
+        .end_cell(), 64);
+    }
+    return ();
+  }
+  
+  int opcode = in_msg~load_u32_quiet();
+  
+  if (opcode == op::payment_request | 0x80000000) {
+    ;; we've successfully received the money!
+    ;; now we may shop for NFTs, invest in tokens, increase blockchain load, etc
+    
+    send_raw_message(begin_cell()
+      .store_uint(0x10, 6)
+      .store_slice(owner)
+      .store_coins(100000000)
+      .store_uint(op::destruct, 107 + 32)
+      .end_cell(), 1);         ;; destroying the subscription (pays 0.1 TON + transfer fee)
+    
+    send_raw_message(begin_cell()
+      .store_uint(0x10, 6)
+      .store_slice(owner)
+      .store_uint(0, 4 + 107 + 32)
+      .store_slice("Subscription works")
+      .end_cell(), 32 + 128);  ;; shopping (sends full contract balance)
+  } elseif (opcode == op::destruct) {
+    ;; parent wallet has blocked us from shopping forever
+    
+    send_raw_message(begin_cell()
+      .store_uint(0x10, 6)
+      .store_slice(owner)
+      .store_uint(op::destruct, 4 + 107 + 32)
+      .end_cell(), 32 + 128);  ;; destroying the subscription (sends full contract balance)
+  } elseif (opcode == 0xFFFFFFFF) {
+    ;; parent wallet has been unable to send us money to shop
+    ;; we may retry later
+    
+    set_data(not_activated());
+  }
+}
+
+() recv_external() {
+  if (get_data().begin_parse().slice_bits()) {
+    return ();
+  }
+  
+  set_data(activated());
+  commit();
+  accept_message();
+  
+  ;; requesting funds from wallet (pays 0.1 TON + transfer fee)
+  send_raw_message(begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(owner)
+    .store_coins(100000000)
+    .store_uint(op::payment_request, 107 + 32)
+    .store_uint(cur_lt(), 64)
+    .store_coins(500000000)
+    .store_uint(0, 1)
+    .end_cell(), 3);
+}

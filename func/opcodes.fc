@@ -5,6 +5,11 @@ const int state::locked_working  = 2;
 const int op::update_job    = 0xA0000000;
 const int op::lock_on_offer = 0xA0000001;
 
+const int op::destruct        = 0x64737472;
+const int op::payment_request = 0x706c7567;
+const int op::excesses        = 0xd53276db;
+const int op::subscription    = 0x73756273;
+
 const int err::invalid_sender = 171;      ;; 100 + zlib.crc32(b'err::invalid_sender') % 100
 const int err::invariant_failed = 172;    ;; 100 + zlib.crc32(b'err::invariant_failed') % 100
 const int err::insufficient_stake = 179;  ;; 100 + zlib.crc32(b'err::insufficient_stake') % 100

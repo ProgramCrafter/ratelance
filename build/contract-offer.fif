@@ -1,0 +1,286 @@
+"Asm.fif" include
+// automatically generated from `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\stdlib.func` `D:\TON_FunC\ton-freelance\func\offer-contract.fc` incl:`func/stdlib-ext.fc` incl:`func/opcodes.fc` 
+PROGRAM{
+  DECLPROC power
+  DECLPROC sqrt
+  DECLPROC avg
+  DECLPROC exp
+  DECLPROC log2
+  DECLPROC recv_internal
+  DECLPROC recv_external
+  power PROCREF:<{
+    //  x exponent
+    OVER	//  x exponent x
+    0 EQINT	//  x exponent _3
+    IFJMP:<{	//  x exponent
+      2DROP	// 
+      0 PUSHINT	//  _4=0
+    }>	//  x exponent
+    DUP	//  x exponent exponent
+    0 EQINT	//  x exponent _6
+    IFJMP:<{	//  x exponent
+      2DROP	// 
+      1 PUSHINT	//  _7=1
+    }>	//  x exponent
+    OVER	//  x counter result
+    WHILE:<{
+      OVER	//  x counter result counter
+      1 GTINT	//  x counter result _11
+    }>DO<{	//  x counter result
+      s2 PUSH	//  x counter result x
+      MUL	//  x counter result
+      SWAP	//  x result counter
+      DEC	//  x result counter
+      SWAP	//  x counter result
+    }>	//  x counter result
+    2 1 BLKDROP2	//  result
+  }>
+  sqrt PROCREF:<{
+    //  x
+    DUP	//  x x
+    0 EQINT	//  x _2
+    IFJMP:<{	//  x
+      DROP	// 
+      0 PUSHINT	//  _3=0
+    }>	//  x
+    DUP	//  x x
+    4 LESSINT	//  x _5
+    IFJMP:<{	//  x
+      DROP	// 
+      1 PUSHINT	//  _6=1
+    }>	//  x
+    DUP	//  x x
+    INC	//  x _9
+    1 RSHIFT#	//  x z
+    OVER	//  x z y
+    WHILE:<{
+      2DUP	//  x z y z y
+      LESS	//  x z y _13
+    }>DO<{	//  x z y
+      DROP	//  x z
+      s0 s1 s0 PUSH3	//  x z y x z
+      DIV	//  x z y _14
+      ROT	//  x y _14 z
+      ADD	//  x y _15
+      1 RSHIFT#	//  x y z
+      SWAP	//  x z y
+    }>	//  x z y
+    2 1 BLKDROP2	//  y
+  }>
+  avg PROCREF:<{
+    //  x y
+    ADD	//  _2
+    1 RSHIFT#	//  _4
+  }>
+  exp PROCREF:<{
+    //  x
+    DUP	//  x x
+    -1 GTINT	//  x _2
+    IF:<{	//  x
+      POW2	//  _3
+    }>ELSE<{	//  x
+      1 PUSHINT	//  x _6=1
+      SWAP	//  _6=1 x
+      NEGATE	//  _6=1 _8
+      RSHIFT	//  _3
+    }>
+  }>
+  log2 PROCREF:<{
+    //  x
+    0 PUSHINT	//  x n=0
+    7 PUSHPOW2	//  x n=0 _3=128
+    exp INLINECALLDICT	//  x n=0 _4
+    s2 s(-1) PUXC	//  x n=0 x _4
+    GEQ	//  x n=0 _5
+    IF:<{	//  x n=0
+      DROP	//  x
+      128 RSHIFT#	//  x
+      7 PUSHPOW2	//  x n
+    }>	//  x n
+    64 PUSHINT	//  x n _10=64
+    exp INLINECALLDICT	//  x n _11
+    s2 s(-1) PUXC	//  x n x _11
+    GEQ	//  x n _12
+    IF:<{	//  x n
+      SWAP	//  n x
+      64 RSHIFT#	//  n x
+      SWAP	//  x n
+      64 ADDCONST	//  x n
+    }>	//  x n
+    32 PUSHINT	//  x n _17=32
+    exp INLINECALLDICT	//  x n _18
+    s2 s(-1) PUXC	//  x n x _18
+    GEQ	//  x n _19
+    IF:<{	//  x n
+      SWAP	//  n x
+      32 RSHIFT#	//  n x
+      SWAP	//  x n
+      32 ADDCONST	//  x n
+    }>	//  x n
+    16 PUSHINT	//  x n _24=16
+    exp INLINECALLDICT	//  x n _25
+    s2 s(-1) PUXC	//  x n x _25
+    GEQ	//  x n _26
+    IF:<{	//  x n
+      SWAP	//  n x
+      16 RSHIFT#	//  n x
+      SWAP	//  x n
+      16 ADDCONST	//  x n
+    }>	//  x n
+    8 PUSHINT	//  x n _31=8
+    exp INLINECALLDICT	//  x n _32
+    s2 s(-1) PUXC	//  x n x _32
+    GEQ	//  x n _33
+    IF:<{	//  x n
+      SWAP	//  n x
+      8 RSHIFT#	//  n x
+      SWAP	//  x n
+      8 ADDCONST	//  x n
+    }>	//  x n
+    4 PUSHINT	//  x n _38=4
+    exp INLINECALLDICT	//  x n _39
+    s2 s(-1) PUXC	//  x n x _39
+    GEQ	//  x n _40
+    IF:<{	//  x n
+      SWAP	//  n x
+      4 RSHIFT#	//  n x
+      SWAP	//  x n
+      4 ADDCONST	//  x n
+    }>	//  x n
+    2 PUSHINT	//  x n _45=2
+    exp INLINECALLDICT	//  x n _46
+    s2 s(-1) PUXC	//  x n x _46
+    GEQ	//  x n _47
+    IF:<{	//  x n
+      SWAP	//  n x
+      2 RSHIFT#	//  n x
+      SWAP	//  x n
+      2 ADDCONST	//  x n
+    }>	//  x n
+    1 PUSHINT	//  x n _52=1
+    exp INLINECALLDICT	//  x n _53
+    s1 s2 XCHG	//  n x _53
+    GEQ	//  n _54
+    IF:<{	//  n
+      INC	//  n
+    }>	//  n
+  }>
+  recv_internal PROC:<{
+    //  in_msg_full in_msg
+    SWAP	//  in_msg in_msg_full
+    CTOS	//  in_msg in_msg_full
+    4 LDU	//  in_msg _5 in_msg_full
+    SWAP
+    2 PUSHINT	//  in_msg in_msg_full _5 _8=2
+    AND	//  in_msg in_msg_full bounceable
+    SWAP	//  in_msg bounceable in_msg_full
+    LDMSGADDR	//  in_msg bounceable _103 _102
+    DROP	//  in_msg bounceable sender
+    x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  in_msg bounceable sender _13
+    SDEQ	//  in_msg bounceable _14
+    IFJMP:<{	//  in_msg bounceable
+      NIP	//  bounceable
+      IF:<{	// 
+        100 THROW
+      }>ELSE<{	// 
+        3576854235 PUSHINT	//  _17=3576854235
+        16 PUSHINT	//  _17=3576854235 _18=16
+        NEWC	//  _17=3576854235 _18=16 _19
+        6 STU	//  _17=3576854235 _21
+        x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _17=3576854235 _21 _22
+        STSLICER	//  _17=3576854235 _23
+        143 STU	//  _29
+        ENDC	//  _30
+        64 PUSHINT	//  _30 _31=64
+        SENDRAWMSG
+      }>
+    }>	//  in_msg bounceable
+    DROP	//  in_msg
+    32 PLDUZ	//  _104 _105
+    NIP	//  opcode
+    DUP
+    4033639783 PUSHINT	//  opcode opcode _38
+    EQUAL	//  opcode _39
+    IF:<{	//  opcode
+      DROP	// 
+      1685288050 PUSHINT	//  _40=1685288050
+      16 PUSHINT	//  _40=1685288050 _41=16
+      NEWC	//  _40=1685288050 _41=16 _42
+      6 STU	//  _40=1685288050 _44
+      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _40=1685288050 _44 _45
+      STSLICER	//  _40=1685288050 _46
+      100000000 PUSHINT	//  _40=1685288050 _46 _47=100000000
+      STVARUINT16	//  _40=1685288050 _48
+      139 STU	//  _52
+      ENDC	//  _53
+      1 PUSHINT	//  _53 _54=1
+      SENDRAWMSG
+      0 PUSHINT	//  _56=0
+      16 PUSHINT	//  _56=0 _57=16
+      NEWC	//  _56=0 _57=16 _58
+      6 STU	//  _56=0 _60
+      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _56=0 _60 _61
+      STSLICER	//  _56=0 _62
+      143 STU	//  _68
+      x{537562736372697074696f6e20776f726b73} PUSHSLICE	//  _68 _69
+      STSLICER	//  _70
+      ENDC	//  _71
+      160 PUSHINT	//  _71 _74
+      SENDRAWMSG
+    }>ELSE<{	//  opcode
+      DUP
+      1685288050 PUSHINT	//  opcode opcode _76=1685288050
+      EQUAL	//  opcode _77
+      IF:<{	//  opcode
+        DROP	// 
+        1685288050 PUSHINT	//  _78=1685288050
+        16 PUSHINT	//  _78=1685288050 _79=16
+        NEWC	//  _78=1685288050 _79=16 _80
+        6 STU	//  _78=1685288050 _82
+        x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _78=1685288050 _82 _83
+        STSLICER	//  _78=1685288050 _84
+        143 STU	//  _90
+        ENDC	//  _91
+        160 PUSHINT	//  _91 _94
+        SENDRAWMSG
+      }>ELSE<{	//  opcode
+        32 PUSHPOW2DEC	//  opcode _96=4294967295
+        EQUAL	//  _97
+        IF:<{	// 
+          b{}  s>c PUSHREF	//  _98
+          c4 POP
+        }>	// 
+      }>
+    }>
+  }>
+  recv_external PROC:<{
+    // 
+    c4 PUSH	//  _0
+    CTOS	//  _1
+    SBITS	//  _2
+    IFJMP:<{	// 
+    }>	// 
+    b{1} s>c PUSHREF	//  _3
+    c4 POP
+    COMMIT
+    ACCEPT
+    0 PUSHINT	//  _7=0
+    LTIME	//  _7=0 _8
+    1886156135 PUSHINT	//  _7=0 _8 _9=1886156135
+    24 PUSHINT	//  _7=0 _8 _9=1886156135 _10=24
+    NEWC	//  _7=0 _8 _9=1886156135 _10=24 _11
+    6 STU	//  _7=0 _8 _9=1886156135 _13
+    x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _7=0 _8 _9=1886156135 _13 _14
+    STSLICER	//  _7=0 _8 _9=1886156135 _15
+    100000000 PUSHINT	//  _7=0 _8 _9=1886156135 _15 _16=100000000
+    STVARUINT16	//  _7=0 _8 _9=1886156135 _17
+    139 STU	//  _7=0 _8 _21
+    64 STU	//  _7=0 _23
+    500000000 PUSHINT	//  _7=0 _23 _24=500000000
+    STVARUINT16	//  _7=0 _25
+    1 STU	//  _27
+    ENDC	//  _28
+    3 PUSHINT	//  _28 _29=3
+    SENDRAWMSG
+  }>
+}END>c

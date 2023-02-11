@@ -1,0 +1,52 @@
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python39\lib\logging\__init__.py", line 1082, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python39\lib\encodings\cp1251.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f308' in position 6: character maps to <undefined>
+Call stack:
+  File "C:\Program Files\Python39\lib\runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Program Files\Python39\lib\runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "C:\Program Files\Python39\Scripts\toncli.exe\__main__.py", line 7, in <module>
+    sys.exit(main())
+  File "C:\Program Files\Python39\lib\site-packages\toncli\main.py", line 65, in main
+    CommandsExecuter(command, string_kwargs, parser)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 39, in __init__
+    self.command_mapper[command](self)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 49, in run_tests_command
+    return RunTestsCommand(self.string_kwargs, self.parser)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\command_classes\run_tests_command.py", line 12, in __init__
+    test_runner.run(args.contracts.split() if args.contracts else None,
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\test\tests.py", line 26, in run
+    logger.info(f"\U0001f308 Start tests")
+Message: '\U0001f308 Start tests'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\Python39\lib\logging\__init__.py", line 1082, in emit
+    stream.write(msg + self.terminator)
+  File "C:\Program Files\Python39\lib\encodings\cp1251.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f94c' in position 6: character maps to <undefined>
+Call stack:
+  File "C:\Program Files\Python39\lib\runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Program Files\Python39\lib\runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "C:\Program Files\Python39\Scripts\toncli.exe\__main__.py", line 7, in <module>
+    sys.exit(main())
+  File "C:\Program Files\Python39\lib\site-packages\toncli\main.py", line 65, in main
+    CommandsExecuter(command, string_kwargs, parser)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 39, in __init__
+    self.command_mapper[command](self)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 49, in run_tests_command
+    return RunTestsCommand(self.string_kwargs, self.parser)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\command_classes\run_tests_command.py", line 12, in __init__
+    test_runner.run(args.contracts.split() if args.contracts else None,
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\test\tests.py", line 47, in run
+    logger.info(f"\U0001f94c Build {gr}successfully{rs}, check out {gr}.{location}{rs}")
+Message: '\U0001f94c Build \x1b[32msuccessfully\x1b[0m, check out \x1b[32m.\\build\x1b[0m'
+Arguments: ()

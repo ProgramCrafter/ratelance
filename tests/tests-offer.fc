@@ -54,68 +54,31 @@ forall F, A -> int invoke_gas(F fun, A args) impure method_id {
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-int add(int a, int b) asm "ADD";
-int mul(int a, int b) asm "MUL";
 
-int mul_mod(int a, int b, int m) inline_ref {
-  (_, int r) = muldivmod(a % m, b % m, m);
-  return r;
-}
-int mul_mod_better(int a, int b, int m) inline_ref {
-  (_, int r) = muldivmod(a, b, m);
-  return r;
-}
-int mul_mod_best(int a, int b, int m) asm "x{A988} s,";
-
-
-int __test_addition_short() {
-  return invoke_gas(add, [5, 3]);
-}
-int __test_addition_128() {
-  return invoke_gas(add, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125)]);
+() __test_indicate_todo() {
+  ~dump(4445); ~dump("TODO: tests"u);
+  
+  throw(100);
 }
 
+{-- optimizing check if cell is empty --}
 
-int __test_multiplication_short() {
-  return invoke_gas(mul, [5, 3]);
-}
-int __test_multiplication_128() {
-  return invoke_gas(mul, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125)]);
-}
+cell empty_cell()    asm "b{} s>c PUSHREF";
+cell nonempty_cell() asm "b{1} s>c PUSHREF";
 
+int is_nonempty_cdata(cell) asm "TEN CDATASIZE DROP NIP";
+int is_nonempty_parse(cell) asm "CTOS SBITS";
 
-int __test_modulo_multiplication_short() {
-  return invoke_gas(mul_mod, [5, 3, 7]);
+int __test_gas_empty_depth() {
+  return invoke_gas(is_nonempty_cdata, [empty_cell()]);
 }
-int __test_multiplication_128_mod_16() {
-  return invoke_gas(mul_mod, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), 65535]);
-}
-int __test_multiplication_128_mod_25519() {
-  return invoke_gas(mul_mod, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), (1 << 255) + 19]);
+int __test_gas_nonempty_depth() {
+  return invoke_gas(is_nonempty_cdata, [nonempty_cell()]);
 }
 
-
-int __test_better_modulo_multiplication_short() {
-  return invoke_gas(mul_mod_better, [5, 3, 7]);
+int __test_gas_empty_parse() {
+  return invoke_gas(is_nonempty_parse, [empty_cell()]);
 }
-int __test_better_multiplication_128_mod_16() {
-  return invoke_gas(mul_mod_better, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), 65535]);
-}
-int __test_better_multiplication_128_mod_25519() {
-  return invoke_gas(mul_mod_better, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), (1 << 255) + 19]);
-}
-
-
-int __test_best_modulo_multiplication_short() {
-  return invoke_gas(mul_mod_best, [5, 3, 7]);
-}
-int __test_best_multiplication_128_mod_16() {
-  return invoke_gas(mul_mod_best, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), 65535]);
-}
-int __test_best_multiplication_128_mod_25519() {
-  return invoke_gas(mul_mod_best, [(1 << 125) + (1 << 127), (1 << 126) + (1 << 125), (1 << 255) + 19]);
-}
-
-int __test_six() {
-  return 0xA;
+int __test_gas_nonempty_parse() {
+  return invoke_gas(is_nonempty_parse, [nonempty_cell()]);
 }

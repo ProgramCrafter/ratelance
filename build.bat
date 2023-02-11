@@ -30,16 +30,16 @@ rem PowerShell -Command "Write-Error (Read-Host)" <build\dump-prefix.fif 2>nul >
 rem PowerShell -Command "Write-Host -NoNewline %BASE_DIR%" >>build\contract.fif
 rem PowerShell -Command "Write-Error (Read-Host)" <build\dump-suffix.fif 2>nul >>build\contract.fif
 
-PowerShell -Command "Write-Error (Read-Host); Write-Host -NoNewline %BASE_DIR%" <build\dump-prefix.fif 2>nul >>build\contract.fif
-more build\dump-suffix.fif >>build\contract.fif
+PowerShell -Command "Write-Error (Read-Host); Write-Host -NoNewline %BASE_DIR%" <build\dump-prefix.fif 2>nul >>build\contract-offer.fif
+more build\dump-suffix.fif >>build\contract-offer.fif
 
 echo ====== Powershelled paths into .fif ======
 
 rem cd /D %FIFTPATH%
-toncli fift run %BASE_DIR%\build\contract.fif
+toncli fift run %BASE_DIR%\build\contract-offer.fif
 rem cd /D %BASE_DIR%
 
-dump-hex.py build\boc\contract.boc >build\boc\contract.hex
+dump-hex.py build\boc\contract.boc >build\boc\contract-offer.hex
 echo ====== Dumped code into .hex file ========
 
 rem Removing absolute path from contract.fif

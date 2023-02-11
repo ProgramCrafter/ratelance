@@ -1,6 +1,12 @@
-contract:
+contract-job:
   func:
-    - func/code.fc
+    - func/job-contract.fc
   tests:
-    - tests/tests.fc
+    - tests/tests-job.fc
+  
+contract-offer:
+  func:
+    - func/offer-contract.fc
+  tests:
+    - tests/tests-offer.fc
   
