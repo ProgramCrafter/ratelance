@@ -1,0 +1,5 @@
+(builder, ()) ~store_slice(builder, slice) asm "STSLICER";
+(builder, ()) ~store_ref(builder, cell) asm "STREFR";
+
+int equal_slices(slice, slice) asm "SDEQ";
+int first_bit(slice) asm "SDFIRST";

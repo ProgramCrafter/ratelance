@@ -1,0 +1,109 @@
+#include "func/stdlib-ext.fc";
+#include "func/opcodes.fc";
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+{- Contract formal description (Idris)
+
+import Data.Vect
+import Data.Fin
+
+data JobUnlockedContract -> Type where
+  --implicit JobNull        : JobUnlockedContract
+             JobProposed    : {--implicit (pledge : Nat) -} -> (description : Ref Type) -> (value : Nat) -> (key : Vect 256 (Fin 2)) -> (owner : MsgAddress) -> JobUnlockedContract
+  --implicit JobUpdate      : (new_desc : Ref Type) -> (new_value : Nat) -> (old : JobUnlockedContract) -> JobUnlockedContract
+  --implicit JobAddPledge   : {--implicit (add_pledge : Nat) -} -> (old : JobUnlockedContract) -> JobUnlockedContract
+
+data JobLockedOfferContract -> Type where
+             JobLockOffer   : (old : JobUnlockedContract) -> JobLockedOfferContract
+
+data JobStartedContract -> Type where
+             JobRecvPledge  : (locked_on_offer : JobLockedOfferContract) -> JobStartedContract
+
+-}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+{- Contract storage layout
+
+unlocked$000 poster:MsgAddress poster_key:bits256 description:^Cell
+             value:(VarUInteger 16) = JobContractStorage;
+
+locked_on_offer$001 poster:MsgAddress poster_key:bits256 description:^Cell
+                    value:(VarUInteger 16) offer:MsgAddress = JobContractStorage;
+
+working$010 poster:MsgAddress description:^Cell value:(VarUInteger 16)
+            poster_key:bits256 worker_key:bits256 = JobContractStorage;
+
+-}
+
+{- Messages layout
+
+update_job#A0000000    new_poster_key:bits256 new_description:^Cell new_value:(VarUInteger 16) = InMsgUnlocked;
+lock_on_offer#A0000001 offer:MsgAddress offer_init:^StateInit = InMsgUnlocked;
+  ;; sent by poster;  JobUnlockedContract -> JobLockedOfferContract
+complete_lock#A0000002 
+
+-}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(int, slice) load_bounced_sender(cell in_msg) {
+  slice in_msg = in_msg.begin_parse();
+  int b = in_msg~load_uint(4) & 1;
+  return (b, in_msg~load_msg_addr());
+}
+
+() process_msg_unlocked(int balance, int msg_value, cell in_msg, slice in_msg_body, slice own_data) impure inline_ref {
+  if (equal_slices(in_msg_body, offer_comment())) { return (); }
+  if (in_msg_body.slice_bits() < 32) { return (); }
+  
+  (int bounced, slice sender) = load_bounced_sender(in_msg);
+  throw_if(err::invariant_failed, bounced);
+  
+  int opcode = in_msg_body~load_uint(32);
+  
+  if (opcode == op::update_job) {
+    (slice poster, slice poster_key, cell old_description, int job_value) =
+      (own_data~load_msg_addr(), own_data~load_bits(256), own_data~load_ref(), own_data~load_coins());
+    
+    throw_unless(err::invalid_sender, equal_slices(poster, sender));
+    throw_unless(err::insufficient_stake, balance * 5 > job_value * 6);
+    throw_unless(err::low_job_value, job_value >= 5 * TON);
+    
+    builder new_data = begin_cell()
+      .store_uint(0, 3)
+      .store_slice(poster)
+      .store_slice(in_msg_body~load_bits(256))
+      .store_ref(in_msg_body~load_ref())
+      .store_coins(in_msg_body~load_coins());
+    
+    if (own_data.first_bit()) {
+      new_data~store_slice(own_data);
+    } else {
+      new_data~store_uint(1, 1);
+      new_data~store_ref(get_data());
+    }
+    
+    set_data(new_data.end_cell());
+  } elseif (opcode == op::lock_on_offer) {
+    
+  }
+}
+
+
+
+() recv_internal(int balance, int msg_value, cell in_msg, slice in_msg_body) {
+  slice own_data = get_data().begin_parse();
+  
+  int state = own_data~load_uint(3);
+        if (state == state::unlocked) {
+    process_msg_unlocked(balance, msg_value, in_msg, in_msg_body, own_data);
+  } elseif (state == state::locked_on_offer) {
+    
+  } elseif (state == state::locked_working) {
+    
+  } else {
+    throw(0xFFFF);
+  }
+}
