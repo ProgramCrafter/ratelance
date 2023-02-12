@@ -199,7 +199,7 @@ PROGRAM{
     SWAP	//  balance own_data sender in_msg_body
     32 LDU	//  balance own_data sender opcode in_msg_body
     OVER
-    2684354560 PUSHINTX	//  balance own_data sender opcode in_msg_body opcode _19=2684354560
+    212 PUSHINT	//  balance own_data sender opcode in_msg_body opcode _19=212
     EQUAL	//  balance own_data sender opcode in_msg_body _20
     IF:<{	//  balance own_data sender opcode in_msg_body
       NIP	//  balance own_data sender in_msg_body
@@ -257,7 +257,7 @@ PROGRAM{
     }>ELSE<{	//  balance own_data sender opcode in_msg_body
       s1 s4 XCHG
       4 BLKDROP	//  opcode
-      2684354561 PUSHINT	//  opcode _78=2684354561
+      216 PUSHINT	//  opcode _78=216
       EQUAL	//  _79
       DROP	// 
     }>

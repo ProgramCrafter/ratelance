@@ -39,10 +39,11 @@ const slice owner = "EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7"a;
     ;; now we may shop for NFTs, invest in tokens, increase blockchain load, etc
     
     send_raw_message(begin_cell()
-      .store_uint(0x10, 6)
+      .store_uint(0x10, 6)     ;; not requesting money back: we won't exist by then
       .store_slice(owner)
       .store_coins(100000000)
       .store_uint(op::destruct, 107 + 32)
+      .store_uint(cur_lt(), 64)
       .end_cell(), 1);         ;; destroying the subscription (pays 0.1 TON + transfer fee)
     
     send_raw_message(begin_cell()
@@ -57,7 +58,7 @@ const slice owner = "EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7"a;
     send_raw_message(begin_cell()
       .store_uint(0x10, 6)
       .store_slice(owner)
-      .store_uint(op::destruct, 4 + 107 + 32)
+      .store_uint(0, 4 + 107 + 32)
       .end_cell(), 32 + 128);  ;; destroying the subscription (sends full contract balance)
   } elseif (opcode == 0xFFFFFFFF) {
     ;; parent wallet has been unable to send us money to shop

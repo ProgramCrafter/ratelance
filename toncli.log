@@ -1,15 +1,15 @@
 #DEBUG#: s0 = 4445
 #DEBUG#: s0 = 101924095887283726832596083
-[ 3][t 0][2023-02-11 17:01:24.2210789][vm.cpp:558]	steps: 10 gas: used=715, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-12 14:52:26.5768114][vm.cpp:558]	steps: 10 gas: used=715, max=1000000000, limit=1000000000, credit=0
 INFO: Test [[32m__test_indicate_todo[0m] status: [[31mFAIL[0m], code: [[36m100[0m] Total gas used (including testing code): [[32m715[0m]
 
 #DEBUG#: s0 = 4445
 #DEBUG#: s0 = 101924095887283726832596083
-[ 3][t 0][2023-02-11 17:01:24.2489911][vm.cpp:558]	steps: 10 gas: used=1015, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-11 17:01:24.2490798][vm.cpp:558]	steps: 72 gas: used=3606, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-11 17:01:24.2491168][vm.cpp:558]	steps: 72 gas: used=3606, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-11 17:01:24.2491509][vm.cpp:558]	steps: 70 gas: used=3570, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-11 17:01:24.2491821][vm.cpp:558]	steps: 70 gas: used=3470, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-12 14:52:26.6093591][vm.cpp:558]	steps: 10 gas: used=1015, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-12 14:52:26.6094519][vm.cpp:558]	steps: 72 gas: used=3606, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-12 14:52:26.6094905][vm.cpp:558]	steps: 72 gas: used=3606, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-12 14:52:26.6095253][vm.cpp:558]	steps: 70 gas: used=3570, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-12 14:52:26.6095567][vm.cpp:558]	steps: 70 gas: used=3470, max=1000000000, limit=1000000000, credit=0
 INFO: Test [[32m__test_indicate_todo[0m] status: [[31mFAIL[0m], code: [[36m100[0m] Total gas used (including testing code): [[32m1015[0m]
 INFO: Test [[32m__test_gas_empty_depth[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 219 ][0m] Total gas used (including testing code): [[32m3606[0m]
 INFO: Test [[32m__test_gas_nonempty_depth[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 219 ][0m] Total gas used (including testing code): [[32m3606[0m]

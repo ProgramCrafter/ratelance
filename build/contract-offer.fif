@@ -174,7 +174,7 @@ PROGRAM{
     2 PUSHINT	//  in_msg in_msg_full _5 _8=2
     AND	//  in_msg in_msg_full bounceable
     SWAP	//  in_msg bounceable in_msg_full
-    LDMSGADDR	//  in_msg bounceable _103 _102
+    LDMSGADDR	//  in_msg bounceable _106 _105
     DROP	//  in_msg bounceable sender
     x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  in_msg bounceable sender _13
     SDEQ	//  in_msg bounceable _14
@@ -196,58 +196,60 @@ PROGRAM{
       }>
     }>	//  in_msg bounceable
     DROP	//  in_msg
-    32 PLDUZ	//  _104 _105
+    32 PLDUZ	//  _107 _108
     NIP	//  opcode
     DUP
     4033639783 PUSHINT	//  opcode opcode _38
     EQUAL	//  opcode _39
     IF:<{	//  opcode
       DROP	// 
-      1685288050 PUSHINT	//  _40=1685288050
-      16 PUSHINT	//  _40=1685288050 _41=16
-      NEWC	//  _40=1685288050 _41=16 _42
-      6 STU	//  _40=1685288050 _44
-      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _40=1685288050 _44 _45
-      STSLICER	//  _40=1685288050 _46
-      100000000 PUSHINT	//  _40=1685288050 _46 _47=100000000
-      STVARUINT16	//  _40=1685288050 _48
-      139 STU	//  _52
-      ENDC	//  _53
-      1 PUSHINT	//  _53 _54=1
+      LTIME	//  _40
+      1685288050 PUSHINT	//  _40 _41=1685288050
+      16 PUSHINT	//  _40 _41=1685288050 _42=16
+      NEWC	//  _40 _41=1685288050 _42=16 _43
+      6 STU	//  _40 _41=1685288050 _45
+      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _40 _41=1685288050 _45 _46
+      STSLICER	//  _40 _41=1685288050 _47
+      100000000 PUSHINT	//  _40 _41=1685288050 _47 _48=100000000
+      STVARUINT16	//  _40 _41=1685288050 _49
+      139 STU	//  _40 _53
+      64 STU	//  _55
+      ENDC	//  _56
+      1 PUSHINT	//  _56 _57=1
       SENDRAWMSG
-      0 PUSHINT	//  _56=0
-      16 PUSHINT	//  _56=0 _57=16
-      NEWC	//  _56=0 _57=16 _58
-      6 STU	//  _56=0 _60
-      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _56=0 _60 _61
-      STSLICER	//  _56=0 _62
-      143 STU	//  _68
-      x{537562736372697074696f6e20776f726b73} PUSHSLICE	//  _68 _69
-      STSLICER	//  _70
-      ENDC	//  _71
-      160 PUSHINT	//  _71 _74
+      0 PUSHINT	//  _59=0
+      16 PUSHINT	//  _59=0 _60=16
+      NEWC	//  _59=0 _60=16 _61
+      6 STU	//  _59=0 _63
+      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _59=0 _63 _64
+      STSLICER	//  _59=0 _65
+      143 STU	//  _71
+      x{537562736372697074696f6e20776f726b73} PUSHSLICE	//  _71 _72
+      STSLICER	//  _73
+      ENDC	//  _74
+      160 PUSHINT	//  _74 _77
       SENDRAWMSG
     }>ELSE<{	//  opcode
       DUP
-      1685288050 PUSHINT	//  opcode opcode _76=1685288050
-      EQUAL	//  opcode _77
+      1685288050 PUSHINT	//  opcode opcode _79=1685288050
+      EQUAL	//  opcode _80
       IF:<{	//  opcode
         DROP	// 
-        1685288050 PUSHINT	//  _78=1685288050
-        16 PUSHINT	//  _78=1685288050 _79=16
-        NEWC	//  _78=1685288050 _79=16 _80
-        6 STU	//  _78=1685288050 _82
-        x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _78=1685288050 _82 _83
-        STSLICER	//  _78=1685288050 _84
-        143 STU	//  _90
-        ENDC	//  _91
-        160 PUSHINT	//  _91 _94
+        0 PUSHINT	//  _81=0
+        16 PUSHINT	//  _81=0 _82=16
+        NEWC	//  _81=0 _82=16 _83
+        6 STU	//  _81=0 _85
+        x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _81=0 _85 _86
+        STSLICER	//  _81=0 _87
+        143 STU	//  _93
+        ENDC	//  _94
+        160 PUSHINT	//  _94 _97
         SENDRAWMSG
       }>ELSE<{	//  opcode
-        32 PUSHPOW2DEC	//  opcode _96=4294967295
-        EQUAL	//  _97
+        32 PUSHPOW2DEC	//  opcode _99=4294967295
+        EQUAL	//  _100
         IF:<{	// 
-          b{}  s>c PUSHREF	//  _98
+          b{}  s>c PUSHREF	//  _101
           c4 POP
         }>	// 
       }>

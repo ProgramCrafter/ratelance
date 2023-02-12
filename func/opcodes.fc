@@ -1,14 +1,24 @@
+;; ----  Job contract states  --------------------------------------------------
+
 const int state::unlocked        = 0;
 const int state::locked_on_offer = 1;
 const int state::locked_working  = 2;
 
-const int op::update_job    = 0xA0000000;
-const int op::lock_on_offer = 0xA0000001;
+;; ----  Offer contract opcodes  -----------------------------------------------
 
 const int op::destruct        = 0x64737472;
 const int op::payment_request = 0x706c7567;
 const int op::excesses        = 0xd53276db;
 const int op::subscription    = 0x73756273;
+
+;; ----  Job contract opcodes  -------------------------------------------------
+
+const int op::update_job    = 212;        ;; [TODO] 200 + zlib.crc32(b'op::update_job') % 100
+const int op::lock_on_offer = 216;        ;; 200 + zlib.crc32(b'op::lock_on_offer') % 100
+const int op::lock_success  = 217;        ;; 200 + zlib.crc32(b'op::lock_success') % 100
+const int op::cancel_job    = 279;        ;; 200 + zlib.crc32(b'op::cancel_job') % 100
+
+;; ----  Errors (common)  ------------------------------------------------------
 
 const int err::invalid_sender = 171;      ;; 100 + zlib.crc32(b'err::invalid_sender') % 100
 const int err::invariant_failed = 172;    ;; 100 + zlib.crc32(b'err::invariant_failed') % 100
