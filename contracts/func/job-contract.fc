@@ -3,51 +3,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-{- Contract formal description (Idris)
-
-import Data.Vect
-import Data.Fin
-
-data JobUnlockedContract -> Type where
-  --implicit JobNull        : JobUnlockedContract
-             JobProposed    : {--implicit (pledge : Nat) -} -> (description : Ref Type) -> (value : Nat) -> (key : Vect 256 (Fin 2)) -> (owner : MsgAddress) -> JobUnlockedContract
-  --implicit JobUpdate      : (new_desc : Ref Type) -> (new_value : Nat) -> (old : JobUnlockedContract) -> JobUnlockedContract
-  --implicit JobAddPledge   : {--implicit (add_pledge : Nat) -} -> (old : JobUnlockedContract) -> JobUnlockedContract
-
-data JobLockedOfferContract -> Type where
-             JobLockOffer   : (old : JobUnlockedContract) -> JobLockedOfferContract
-
-data JobStartedContract -> Type where
-             JobRecvPledge  : (locked_on_offer : JobLockedOfferContract) -> JobStartedContract
-
--}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-{- Contract storage layout
-
-unlocked$000 poster:MsgAddress poster_key:bits256 description:^Cell
-             value:(VarUInteger 16) = JobContractStorage;
-
-locked_on_offer$001 poster:MsgAddress poster_key:bits256 description:^Cell
-                    value:(VarUInteger 16) offer:MsgAddress = JobContractStorage;
-
-working$010 poster:MsgAddress description:^Cell value:(VarUInteger 16)
-            poster_key:bits256 worker_key:bits256 = JobContractStorage;
-
--}
-
-{- Messages layout
-
-update_job#A0000000    new_poster_key:bits256 new_description:^Cell new_value:(VarUInteger 16) = InMsgUnlocked;
-lock_on_offer#A0000001 offer:MsgAddress offer_init:^StateInit = InMsgUnlocked;
-  ;; sent by poster;  JobUnlockedContract -> JobLockedOfferContract
-complete_lock#A0000002 
-
--}
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (int, slice) load_bounced_sender(cell in_msg) {
   slice in_msg = in_msg.begin_parse();
   int b = in_msg~load_uint(4) & 1;

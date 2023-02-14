@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\Program Files\Python39\lib\runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Program Files\Python39\lib\runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "C:\Program Files\Python39\Scripts\toncli.exe\__main__.py", line 7, in <module>
+  File "C:\Program Files\Python39\lib\site-packages\toncli\main.py", line 65, in main
+    CommandsExecuter(command, string_kwargs, parser)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 39, in __init__
+    self.command_mapper[command](self)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 49, in run_tests_command
+    return RunTestsCommand(self.string_kwargs, self.parser)
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\command_classes\run_tests_command.py", line 11, in __init__
+    test_runner = TestsRunner()
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\test\tests.py", line 23, in __init__
+    self.project_config = ProjectConf(getcwd())
+  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\system\project_conf.py", line 49, in __init__
+    with open(os.path.abspath(f"{project_root}/project.yaml"), "r", encoding='utf-8') as stream:
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\TON_FunC\\ratelance\\project.yaml'

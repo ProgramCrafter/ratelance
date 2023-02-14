@@ -1,5 +1,5 @@
 "Asm.fif" include
-// automatically generated from `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\stdlib.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\1.address_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\bad_messages_generator.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\c5_parse_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\message_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\storage-test-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\tests-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\token-helpers.func` `D:\TON_FunC\ton-freelance\func\job-contract.fc` incl:`func/stdlib-ext.fc` incl:`func/opcodes.fc` `D:\TON_FunC\ton-freelance\tests\tests-job.fc` 
+// automatically generated from `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\stdlib.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\1.address_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\bad_messages_generator.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\c5_parse_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\message_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\storage-test-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\tests-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\token-helpers.func` `D:\TON_FunC\ratelance\contracts\func\job-contract.fc` incl:`func/stdlib-ext.fc` incl:`func/opcodes.fc` `D:\TON_FunC\ratelance\contracts\tests\tests-job.fc` 
 PROGRAM{
   DECLPROC power
   DECLPROC sqrt
@@ -61,6 +61,9 @@ PROGRAM{
   103208 DECLMETHOD snake_concat
   DECLPROC snake_concat_tagged
   DECLPROC snake_equal?
+  DECLPROC send_to
+  DECLPROC mode::forward_value
+  DECLPROC mode::destroy_into
   DECLPROC load_bounced_sender
   DECLPROC process_msg_unlocked
   DECLPROC recv_internal
@@ -2005,6 +2008,36 @@ PROGRAM{
     }>	//  snake1 snake2 equal
     2 1 BLKDROP2	//  equal
   }>
+  send_to PROCREF:<{
+    //  packed_mode dest value a m
+    //  mode dest value a m
+    NEWC	//  mode dest value a m _7
+    -ROT	//  mode dest value _7 a m
+    2 1 CALLXARGS	//  mode dest value _8
+    ENDC	//  mode dest value _9
+    0 PUSHINT	//  mode dest value _9 _10=0
+    24 PUSHINT	//  mode dest value _9 _10=0 _11=24
+    NEWC	//  mode dest value _9 _10=0 _11=24 _12
+    6 STU	//  mode dest value _9 _10=0 _14
+    s0 s4 XCHG2	//  mode _10=0 value _9 _14 dest
+    STSLICER	//  mode _10=0 value _9 _15
+    ROT	//  mode _10=0 _9 _15 value
+    STVARUINT16	//  mode _10=0 _9 _16
+    s1 s2 XCHG	//  mode _9 _10=0 _16
+    107 STU	//  mode _9 _18
+    STREF	//  mode _19
+    ENDC	//  mode _20
+    SWAP	//  _20 mode
+    SENDRAWMSG
+  }>
+  mode::forward_value PROC:<{
+    // 
+    64 PUSHINT	//  _0=64
+  }>
+  mode::destroy_into PROC:<{
+    // 
+    7 PUSHPOW2	//  _1=128
+  }>
   load_bounced_sender PROC:<{
     //  in_msg
     CTOS	//  in_msg
@@ -2038,7 +2071,7 @@ PROGRAM{
     SWAP	//  balance own_data sender in_msg_body
     32 LDU	//  balance own_data sender opcode in_msg_body
     OVER
-    212 PUSHINT	//  balance own_data sender opcode in_msg_body opcode _19=212
+    168 PUSHINT	//  balance own_data sender opcode in_msg_body opcode _19=168
     EQUAL	//  balance own_data sender opcode in_msg_body _20
     IF:<{	//  balance own_data sender opcode in_msg_body
       NIP	//  balance own_data sender in_msg_body
@@ -2096,7 +2129,7 @@ PROGRAM{
     }>ELSE<{	//  balance own_data sender opcode in_msg_body
       s1 s4 XCHG
       4 BLKDROP	//  opcode
-      216 PUSHINT	//  opcode _78=216
+      172 PUSHINT	//  opcode _78=172
       EQUAL	//  _79
       DROP	// 
     }>

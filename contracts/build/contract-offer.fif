@@ -1,11 +1,35 @@
 "Asm.fif" include
-// automatically generated from `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\stdlib.func` `D:\TON_FunC\ton-freelance\func\offer-contract.fc` incl:`func/stdlib-ext.fc` incl:`func/opcodes.fc` 
+// automatically generated from `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\stdlib.func` `D:\TON_FunC\ratelance\contracts\func\offer-contract.fc` incl:`func/stdlib-ext.fc` incl:`func/opcodes.fc` incl:`func/tlb.fc` 
 PROGRAM{
   DECLPROC power
   DECLPROC sqrt
   DECLPROC avg
   DECLPROC exp
   DECLPROC log2
+  DECLPROC send_to
+  DECLPROC mode::forward_value
+  DECLPROC mode::destroy_into
+  DECLPROC job::ld_tag
+  DECLPROC job::ld_unlocked
+  DECLPROC offer::ld_tag
+  DECLPROC offer::ld_unlocked
+  DECLPROC job::ld_msg_lock_on
+  DECLPROC job::st_msg_collapse
+  DECLPROC job::st_locked
+  DECLPROC offer::ld_msg_collapse
+  DECLPROC offer::st_msg_take_stake
+  DECLPROC offer::st_locked
+  DECLPROC offer::ld_locked
+  DECLPROC offer::st_msg_unplug
+  DECLPROC offer::st_msg_lock_success
+  DECLPROC job::ld_msg_lock_success
+  DECLPROC offer::st_msg_lock_failed
+  DECLPROC offer::st_unlocked
+  DECLPROC job::st_unlocked
+  DECLPROC job::st_working
+  DECLPROC job::wrap_for_signing
+  DECLPROC job::parse_proposal_with_tag
+  DECLPROC job::parse_finish_message
   DECLPROC recv_internal
   DECLPROC recv_external
   power PROCREF:<{
@@ -164,6 +188,247 @@ PROGRAM{
     IF:<{	//  n
       INC	//  n
     }>	//  n
+  }>
+  send_to PROCREF:<{
+    //  packed_mode dest value a m
+    //  mode dest value a m
+    NEWC	//  mode dest value a m _7
+    -ROT	//  mode dest value _7 a m
+    2 1 CALLXARGS	//  mode dest value _8
+    ENDC	//  mode dest value _9
+    0 PUSHINT	//  mode dest value _9 _10=0
+    24 PUSHINT	//  mode dest value _9 _10=0 _11=24
+    NEWC	//  mode dest value _9 _10=0 _11=24 _12
+    6 STU	//  mode dest value _9 _10=0 _14
+    s0 s4 XCHG2	//  mode _10=0 value _9 _14 dest
+    STSLICER	//  mode _10=0 value _9 _15
+    ROT	//  mode _10=0 _9 _15 value
+    STVARUINT16	//  mode _10=0 _9 _16
+    s1 s2 XCHG	//  mode _9 _10=0 _16
+    107 STU	//  mode _9 _18
+    STREF	//  mode _19
+    ENDC	//  mode _20
+    SWAP	//  _20 mode
+    SENDRAWMSG
+  }>
+  mode::forward_value PROC:<{
+    // 
+    64 PUSHINT	//  _0=64
+  }>
+  mode::destroy_into PROC:<{
+    // 
+    7 PUSHPOW2	//  _1=128
+  }>
+  job::ld_tag PROCREF:<{
+    //  v
+    2 LDU	//  _4 _3
+    SWAP	//  _3 _4
+  }>
+  job::ld_unlocked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    64 LDU	//  _1 _3 v
+    LDREF	//  _1 _3 _6 v
+  }>
+  offer::ld_tag PROCREF:<{
+    //  v
+    2 LDU	//  _4 _3
+    SWAP	//  _3 _4
+  }>
+  offer::ld_unlocked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    64 LDU	//  _1 _3 _5 v
+    LDREF	//  _1 _3 _5 _8 v
+    256 LDSLICE	//  _1 _3 _5 _8 _10 v
+  }>
+  job::ld_msg_lock_on PROCREF:<{
+    //  v
+    LDREF	//  _4 _3
+    DROP	//  _1
+  }>
+  job::st_msg_collapse PROCREF:<{
+    //  v
+    c4 PUSH	//  v _3
+    HASHCU	//  v order_hash
+    160 PUSHPOW2DEC	//  v order_hash _9
+    AND	//  v order_hash
+    177 PUSHINT
+    ROT	//  order_hash _12=177 v
+    32 STU	//  order_hash v
+    160 STU	//  v
+  }>
+  job::st_locked PROCREF:<{
+    //  v offer poster value desc poster_key
+    s5 s4 XCHG2	//  desc poster_key poster value v offer
+    STSLICER	//  desc poster_key poster value v
+    ROT	//  desc poster_key value v poster
+    STSLICER	//  desc poster_key value v
+    64 STU	//  desc poster_key v
+    ROT	//  poster_key v desc
+    STREFR	//  poster_key v
+    SWAP	//  v poster_key
+    STSLICER	//  v
+  }>
+  offer::ld_msg_collapse PROCREF:<{
+    //  v
+    160 PLDU	//  _2
+  }>
+  offer::st_msg_take_stake PROCREF:<{
+    //  v stake
+    1886156135 PUSHINT
+    ROT	//  stake _3=1886156135 v
+    32 STU	//  stake v
+    LTIME	//  stake v _7
+    SWAP	//  stake _7 v
+    64 STU	//  stake v
+    STGRAMS	//  v
+    0 PUSHINT	//  v _13=0
+    SWAP	//  _13=0 v
+    1 STU	//  v
+  }>
+  offer::st_locked PROCREF:<{
+    //  v unlocked
+    STSLICER	//  v
+  }>
+  offer::ld_locked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    64 LDU	//  _1 _3 _5 v
+    LDREF	//  _1 _3 _5 _8 v
+    256 LDSLICE	//  _1 _3 _5 _8 _10 v
+  }>
+  offer::st_msg_unplug PROCREF:<{
+    //  v
+    1685288050 PUSHINT	//  v _3=1685288050
+    SWAP	//  _3=1685288050 v
+    32 STU	//  v
+    LTIME	//  v _7
+    SWAP	//  _7 v
+    64 STU	//  v
+  }>
+  offer::st_msg_lock_success PROCREF:<{
+    //  v add_args add_args add_args
+    //  v worker desc worker_key
+    173 PUSHINT	//  v worker desc worker_key _6=173
+    s0 s4 XCHG2	//  worker_key worker desc _6=173 v
+    32 STU	//  worker_key worker desc v
+    ROT	//  worker_key desc v worker
+    STSLICER	//  worker_key desc v
+    SWAP	//  worker_key v desc
+    STREFR	//  worker_key v
+    SWAP	//  v worker_key
+    STSLICER	//  v
+  }>
+  job::ld_msg_lock_success PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDREF	//  _1 _3 v
+  }>
+  offer::st_msg_lock_failed PROCREF:<{
+    //  v
+    212 PUSHINT	//  v _3=212
+    SWAP	//  _3=212 v
+    32 STU	//  v
+  }>
+  offer::st_unlocked PROCREF:<{
+    //  v job worker stake desc worker_key short_job_hash
+    s6 s5 XCHG2	//  worker_key short_job_hash worker stake desc v job
+    STSLICER	//  worker_key short_job_hash worker stake desc v
+    s0 s3 XCHG2	//  worker_key short_job_hash desc stake v worker
+    STSLICER	//  worker_key short_job_hash desc stake v
+    64 STU	//  worker_key short_job_hash desc v
+    SWAP	//  worker_key short_job_hash v desc
+    STREFR	//  worker_key short_job_hash v
+    ROT	//  short_job_hash v worker_key
+    STSLICER	//  short_job_hash v
+    160 STU	//  v
+  }>
+  job::st_unlocked PROCREF:<{
+    //  v poster value desc poster_key
+    s4 s3 XCHG2	//  desc poster_key value v poster
+    STSLICER	//  desc poster_key value v
+    64 STU	//  desc poster_key v
+    ROT	//  poster_key v desc
+    STREFR	//  poster_key v
+    SWAP	//  v poster_key
+    STSLICER	//  v
+  }>
+  job::st_working PROCREF:<{
+    //  v poster worker value poster_desc worker_desc poster_key worker_key
+    s7 s6 XCHG2	//  poster_key worker_key worker value poster_desc worker_desc v poster
+    STSLICER	//  poster_key worker_key worker value poster_desc worker_desc v
+    s0 s4 XCHG2	//  poster_key worker_key worker_desc value poster_desc v worker
+    STSLICER	//  poster_key worker_key worker_desc value poster_desc v
+    s1 s2 XCHG	//  poster_key worker_key worker_desc poster_desc value v
+    64 STU	//  poster_key worker_key worker_desc poster_desc v
+    SWAP	//  poster_key worker_key worker_desc v poster_desc
+    STREFR	//  poster_key worker_key worker_desc v
+    SWAP	//  poster_key worker_key v worker_desc
+    STREFR	//  poster_key worker_key v
+    NEWC	//  poster_key worker_key v _20
+    s0 s3 XCHG2	//  v worker_key _20 poster_key
+    STSLICER	//  v worker_key _21
+    SWAP	//  v _21 worker_key
+    STSLICER	//  v _22
+    x{233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB} PUSHSLICE	//  v _22 _23
+    STSLICER	//  v _24
+    ENDC	//  v _25
+    STREFR	//  v
+  }>
+  job::wrap_for_signing PROCREF:<{
+    //  worker_ton_min worker_ton_max
+    NEWC	//  worker_ton_min worker_ton_max _2
+    x{FFFF726C3A3A6A6F623A3A7630} PUSHSLICE	//  worker_ton_min worker_ton_max _2 _3
+    STSLICER	//  worker_ton_min worker_ton_max _4
+    s1 s2 XCHG	//  worker_ton_max worker_ton_min _4
+    64 STU	//  worker_ton_max _6
+    64 STU	//  _8
+    ENDC	//  _9
+    CTOS	//  _10
+  }>
+  job::parse_proposal_with_tag PROCREF:<{
+    //  v
+    2 LDU	//  tag v
+    OVER	//  tag v tag
+    3 EQINT	//  tag v _6
+    IFJMP:<{	//  tag v
+      2DROP	// 
+      1652841508 PUSHINT	//  _8=1652841508
+      CONFIGOPTPARAM	//  c
+      DUP	//  c c
+      ISNULL	//  c _11
+      200 THROWIF
+      MYADDR	//  c _14
+      SWAP
+      267 PUSHINT	//  _14 c _15=267
+      DICTGET
+      NULLSWAPIFNOT	//  v success
+      200 THROWIFNOT
+      3 PUSHINT	//  v _19=3
+      PUSHNULL	//  v _19=3 _20
+      s0 s2 XCHG	//  _20 _19=3 v
+      64 LDU	//  _20 _19=3 _21 v
+      64 LDU	//  _20 _19=3 _21 _43 _42
+      DROP	//  _20 _19=3 _21 _24
+      s2 s3 XCHG	//  _19=3 _20 _21 _24
+    }>	//  tag v
+    9 PUSHPOW2	//  tag v _28=512
+    LDSLICEX	//  tag _27 v
+    64 LDU	//  tag _27 _30 v
+    64 LDU	//  tag _27 _30 _49 _48
+    DROP	//  tag _27 _30 _33
+  }>
+  job::parse_finish_message PROCREF:<{
+    //  v
+    LDREF	//  _1 v
+    SWAP	//  v _1
+    CTOS	//  v _3
+    SWAP	//  _3 v
+    PLDREF	//  _3 _4
+    CTOS	//  _3 _5
   }>
   recv_internal PROC:<{
     //  in_msg_full in_msg

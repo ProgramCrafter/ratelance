@@ -28,11 +28,20 @@ const int err::invariant_failed = 172;    ;; 100 + zlib.crc32(b'err::invariant_f
 const int err::insufficient_stake = 179;  ;; 100 + zlib.crc32(b'err::insufficient_stake') % 100
 const int err::low_job_value = 127;       ;; 100 + zlib.crc32(b'err::low_job_value') % 100
 
+;; ----  TON utility constants  ------------------------------------------------
+
 const int TON = 1000 * 1000 * 1000;
 
+const int DEVELOPMENT = 1;
 
-;; const slice job_analytic_address = "EQA__Ratelance__at_Hack-a-TONx_by_DoraHacks__NwP"a;
+(int, ()) mode::forward_value() { return (64, ()); }
+(int, ()) mode::destroy_into()  { return DEVELOPMENT ? (128, ()) : (160, ()); }
+
+;; ----  Addresses (common)  ---------------------------------------------------
+
 const slice job_analytic_address = "EQA__Ratelance_______________________________CFj"a;
 const slice multisig_negotiation = "EQA__Ratelance__MULTISIG_NEGOTIATION_________H1U"a;
+
+const slice ratelance_public_key = "233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB"s;
 
 slice offer_comment() asm "x{00000000} x{6F66666572} |+ PUSHSLICE";

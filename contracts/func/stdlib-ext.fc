@@ -1,5 +1,23 @@
 (builder, ()) ~store_slice(builder, slice) asm "STSLICER";
+(builder, ()) ~store_coins(builder a, int b) asm(b a) "STGRAMS";
 (builder, ()) ~store_ref(builder, cell) asm "STREFR";
+
+(slice, int) dict_get?(cell dict, int key_len, slice index)
+    asm(index dict key_len) "DICTGET" "NULLSWAPIFNOT";
 
 int equal_slices(slice, slice) asm "SDEQ";
 int first_bit(slice) asm "SDFIRST";
+
+forall ADDARGS ->
+() send_to((int, ()) packed_mode, slice dest, int value, ADDARGS a,
+           ((builder, ADDARGS) -> builder) m) impure inline_ref {
+  (int mode, _) = packed_mode;
+  
+  send_raw_message(begin_cell()
+    .store_uint(0x18, 6)
+    .store_slice(dest)
+    .store_coins(value)
+    .store_uint(0, 107)
+    .store_ref(m(begin_cell(), a).end_cell())
+    .end_cell(), mode);
+}

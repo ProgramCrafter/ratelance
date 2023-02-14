@@ -1,5 +1,6 @@
 #include "func/stdlib-ext.fc";
 #include "func/opcodes.fc";
+#include "func/tlb.fc";
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
