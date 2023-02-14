@@ -4,90 +4,70 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-cell         not_activated()       asm "b{}  s>c PUSHREF";
-cell         activated()           asm "b{1} s>c PUSHREF";
+;; Incoming messages:
+;; CUS-3.           worker      [empty]
+;; CUS-3,4-REV.     worker      op::destruct
+;; CUS-6.           job         op::collapse
+;; CUS-8-OK.        worker      op::payment_ok
+;; CUS-8-ERR.       worker      0xFFFFFFFF
 
-const slice owner = "EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7"a;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-() recv_internal(cell in_msg_full, slice in_msg) {
-  slice in_msg_full = in_msg_full.begin_parse();
-  int bounceable = in_msg_full~load_uint(4) & 2;
-  slice sender = in_msg_full~load_msg_addr();
+() recv_internal(cell in_msg, slice in_msg_body) {
+  if (in_msg_body.slice_bits() < 32) {
+    return ();
+  }
   
-  ifnot (equal_slices(sender, owner)) {
-    ;; contract must obey only owner's orders
-    ;; all other funds must be returned or forwarded to owner
+  (int bounced, slice sender) = load_bounced_sender(in_msg);
+  
+  int op = in_msg_body~load_uint(32);
+  
+  slice own_data = get_data().begin_parse();
+  int tag = own_data~load_uint(2);
+  
+  if (tag == offer::tag::unlocked) {
+    (slice job, slice worker, int stake, cell desc, slice worker_key,
+      int job_hash) = offer::ld_unlocked(own_data);
     
-    if (bounceable) {
-      throw(100);
-    } else {
-      send_raw_message(begin_cell()
-        .store_uint(0x10, 6)    ;; let money rest on owner's address even if it's unable to receive it
-        .store_slice(owner)
-        .store_uint(op::excesses, 4 + 107 + 32)
-        .end_cell(), 64);
+    if (op == op::destruct) {
+      throw_unless(200, equal_slices(worker, sender));
+      
+      send_text(mode::destroy_into(), sender, 0, "Offer revoked.");
+      return ();
+    } elseif (op == op::collapse) {
+      throw_unless(200, equal_slices(job, sender));
+      throw_unless(200, offer::ld_msg_collapse(in_msg_body) == job_hash);
+      
+      send_to_rbounceable(mode::forward_value(), true, worker, 0, stake,
+                          offer::st_msg_take_stake);
+      set_data(begin_cell()
+        .store_uint(offer::tag::locked, 2)
+        .offer::st_locked(own_data)
+        .end_cell());
+      return ();
     }
-    return ();
+  } elseif (tag == offer::tag::locked) {
+    slice job = own_data~load_msg_addr();
+    slice worker = own_data~load_msg_addr();
+    
+    throw_unless(200, equal_slices(worker, sender));
+    
+    if (bounced) {
+      send_to(mode::forward_value(), job, 0, null(), offer::st_msg_lock_failed);
+      set_data(begin_cell()
+        .store_uint(offer::tag::unlocked, 2)
+        .store_slice(own_data)
+        .end_cell());
+      return ();
+    } elseif (op == op::payment_ok) {
+      own_data~skip_bits(64);
+      
+      send_to(mode::destroy_into(), job, 0, triple(
+        worker,
+        own_data.preload_ref(),
+        own_data~load_bits(256)
+      ), offer::st_msg_lock_success);
+      return ();
+    }
   }
   
-  if (in_msg.slice_bits() < 32) {
-    return ();
-  }
-  int opcode = in_msg~load_uint(32);
-  
-  if (opcode == op::payment_request | 0x80000000) {
-    ;; we've successfully received the money!
-    ;; now we may shop for NFTs, invest in tokens, increase blockchain load, etc
-    
-    send_raw_message(begin_cell()
-      .store_uint(0x10, 6)     ;; not requesting money back: we won't exist by then
-      .store_slice(owner)
-      .store_coins(100000000)
-      .store_uint(op::destruct, 107 + 32)
-      .store_uint(cur_lt(), 64)
-      .end_cell(), 1);         ;; destroying the subscription (pays 0.1 TON + transfer fee)
-    
-    send_raw_message(begin_cell()
-      .store_uint(0x10, 6)
-      .store_slice(owner)
-      .store_uint(0, 4 + 107 + 32)
-      .store_slice("Subscription works")
-      .end_cell(), 32 + 128);  ;; shopping (sends full contract balance)
-  } elseif (opcode == op::destruct) {
-    ;; parent wallet has blocked us from shopping forever
-    
-    send_raw_message(begin_cell()
-      .store_uint(0x10, 6)
-      .store_slice(owner)
-      .store_uint(0, 4 + 107 + 32)
-      .end_cell(), 32 + 128);  ;; destroying the subscription (sends full contract balance)
-  } elseif (opcode == 0xFFFFFFFF) {
-    ;; parent wallet has been unable to send us money to shop
-    ;; we may retry later
-    
-    set_data(not_activated());
-  }
-}
-
-() recv_external() {
-  if (get_data().begin_parse().slice_bits()) {
-    return ();
-  }
-  
-  set_data(activated());
-  commit();
-  accept_message();
-  
-  ;; requesting funds from wallet (pays 0.1 TON + transfer fee)
-  send_raw_message(begin_cell()
-    .store_uint(0x18, 6)
-    .store_slice(owner)
-    .store_coins(100000000)
-    .store_uint(op::payment_request, 107 + 32)
-    .store_uint(cur_lt(), 64)
-    .store_coins(500000000)
-    .store_uint(0, 1)
-    .end_cell(), 3);
+  throw(0xFFFF);
 }

@@ -17,9 +17,9 @@
 (slice, int) offer::ld_tag(slice v) inline_ref {
   return v.load_uint(2);
 }
-(slice, slice, int, cell, slice, slice) offer::ld_unlocked(slice v) inline_ref {
+(slice, slice, int, cell, slice, int) offer::ld_unlocked(slice v) inline_ref {
   return (v~load_msg_addr(), v~load_msg_addr(), v~load_uint(64), v~load_ref(),
-          v~load_bits(256), v);
+          v~load_bits(256), v.preload_uint(160));
 }
 
 ;; CUS-4. Serialized by user. Deserialized by user.
@@ -72,9 +72,9 @@ builder offer::st_msg_unplug(builder v, () add_args) inline_ref {
   v~store_uint(0x64737472, 32); v~store_uint(cur_lt(), 64);
   return v;
 }
-builder offer::st_msg_lock_success(builder v, (slice, cell, slice) add_args)
+builder offer::st_msg_lock_success(builder v, [slice, cell, slice] add_args)
           inline_ref {
-  (slice worker, cell desc, slice worker_key) = add_args;
+  (slice worker, cell desc, slice worker_key) = untriple(add_args);
   v~store_uint(op::lock_success, 32); v~store_slice(worker);
   v~store_ref(desc); v~store_slice(worker_key);
   return v;
@@ -84,7 +84,7 @@ builder offer::st_msg_lock_success(builder v, (slice, cell, slice) add_args)
 }
 
 ;; CUS-9-ERR.
-builder offer::st_msg_lock_failed(builder v, () add_args) inline_ref {
+builder offer::st_msg_lock_failed(builder v, cell add_args) inline_ref {
   v~store_uint(op::lock_failed, 32); return v;
 }
 builder offer::st_unlocked(builder v, slice job, slice worker, int stake,

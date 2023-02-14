@@ -1,18 +1,18 @@
 #DEBUG#: s0 = 4445
 #DEBUG#: s0 = 101924095887283726832596083
-[ 3][t 0][2023-02-14 12:37:29.5643949][vm.cpp:558]	steps: 10 gas: used=715, max=1000000000, limit=1000000000, credit=0
-INFO: Test [[32m__test_indicate_todo[0m] status: [[31mFAIL[0m], code: [[36m100[0m] Total gas used (including testing code): [[32m715[0m]
+[ 3][t 0][2023-02-14 15:01:43.6046336][vm.cpp:558]	steps: 10 gas: used=815, max=1000000000, limit=1000000000, credit=0
+INFO: Test [[32m__test_indicate_todo[0m] status: [[31mFAIL[0m], code: [[36m100[0m] Total gas used (including testing code): [[32m815[0m]
 
 #DEBUG#: s0 = 4445
 #DEBUG#: s0 = 101924095887283726832596083
-[ 3][t 0][2023-02-14 12:37:29.5974953][vm.cpp:558]	steps: 10 gas: used=1215, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-14 12:37:29.5976052][vm.cpp:558]	steps: 72 gas: used=3606, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-14 12:37:29.5976439][vm.cpp:558]	steps: 72 gas: used=3606, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-14 12:37:29.5976791][vm.cpp:558]	steps: 70 gas: used=3570, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-14 12:37:29.5977115][vm.cpp:558]	steps: 70 gas: used=3570, max=1000000000, limit=1000000000, credit=0
-INFO: Test [[32m__test_indicate_todo[0m] status: [[31mFAIL[0m], code: [[36m100[0m] Total gas used (including testing code): [[32m1215[0m]
-INFO: Test [[32m__test_gas_empty_depth[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 219 ][0m] Total gas used (including testing code): [[32m3606[0m]
-INFO: Test [[32m__test_gas_nonempty_depth[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 219 ][0m] Total gas used (including testing code): [[32m3606[0m]
-INFO: Test [[32m__test_gas_empty_parse[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 183 ][0m] Total gas used (including testing code): [[32m3570[0m]
-INFO: Test [[32m__test_gas_nonempty_parse[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 183 ][0m] Total gas used (including testing code): [[32m3570[0m]
+[ 3][t 0][2023-02-14 15:01:43.6359482][vm.cpp:558]	steps: 10 gas: used=1015, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-14 15:01:43.6361550][vm.cpp:558]	steps: 72 gas: used=3581, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-14 15:01:43.6361946][vm.cpp:558]	steps: 72 gas: used=3581, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-14 15:01:43.6362281][vm.cpp:558]	steps: 70 gas: used=3445, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-14 15:01:43.6362598][vm.cpp:558]	steps: 70 gas: used=3445, max=1000000000, limit=1000000000, credit=0
+INFO: Test [[32m__test_indicate_todo[0m] status: [[31mFAIL[0m], code: [[36m100[0m] Total gas used (including testing code): [[32m1015[0m]
+INFO: Test [[32m__test_gas_empty_depth[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 219 ][0m] Total gas used (including testing code): [[32m3581[0m]
+INFO: Test [[32m__test_gas_nonempty_depth[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 219 ][0m] Total gas used (including testing code): [[32m3581[0m]
+INFO: Test [[32m__test_gas_empty_parse[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 183 ][0m] Total gas used (including testing code): [[32m3445[0m]
+INFO: Test [[32m__test_gas_nonempty_parse[0m] status: [[32mSUCCESS[0m] Test result: [[32m[ 183 ][0m] Total gas used (including testing code): [[32m3445[0m]
 

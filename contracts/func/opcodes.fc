@@ -11,6 +11,7 @@ const int offer::tag::locked   = 1;
 
 const int op::destruct        = 0x64737472;
 const int op::payment_request = 0x706c7567;
+const int op::payment_ok      = 0x80000000 | op::payment_request;
 const int op::excesses        = 0xd53276db;
 const int op::subscription    = 0x73756273;
 
@@ -47,5 +48,3 @@ const slice job_analytic_address = "EQA__Ratelance______________________________
 const slice multisig_negotiation = "EQA__Ratelance__MULTISIG_NEGOTIATION_________H1U"a;
 
 const slice ratelance_public_key = "233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB"s;
-
-slice offer_comment() asm "x{00000000} x{6F66666572} |+ PUSHSLICE";
