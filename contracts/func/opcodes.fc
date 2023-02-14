@@ -38,9 +38,9 @@ const int TON = 1000 * 1000 * 1000;
 
 const int DEVELOPMENT = 1;
 
-(int, ()) mode::forward_value() inline_ref { return (64, ()); }
-(int, ()) mode::pay_transfer()  inline_ref { return (1, ()); }
-(int, ()) mode::destroy_into()  inline_ref { return DEVELOPMENT ? (128, ()) : (160, ()); }
+(int, ()) mode::forward_value() inline { return (64, ()); }
+(int, ()) mode::pay_transfer()  inline { return (1, ()); }
+(int, ()) mode::destroy_into()  inline { return DEVELOPMENT ? (128, ()) : (160, ()); }
 
 ;; ----  Addresses (common)  ---------------------------------------------------
 

@@ -2,7 +2,7 @@
 #include "func/opcodes.fc";
 #include "func/tlb.fc";
 
-(int, int, int) parse_proposal_check_sig(slice v, slice keys) impure inline_ref {
+(int, int, int) parse_proposal_check_sig(slice v, slice keys) impure inline {
   (int tag, slice sig, int lb, int ub) = job::parse_proposal_with_tag(v);
   
   if (tag != 3) {

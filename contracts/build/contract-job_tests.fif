@@ -62,7 +62,6 @@ PROGRAM{
   DECLPROC snake_concat_tagged
   DECLPROC snake_equal?
   DECLPROC load_bounced_sender
-  DECLPROC load_flags_sender
   DECLPROC send_to_rbounceable
   DECLPROC send_to
   DECLPROC send_text
@@ -2040,7 +2039,7 @@ PROGRAM{
     }>	//  snake1 snake2 equal
     2 1 BLKDROP2	//  equal
   }>
-  load_bounced_sender PROC:<{
+  load_bounced_sender PROCINLINE:<{
     //  in_msg
     CTOS	//  in_msg
     4 LDU	//  _4 in_msg
@@ -2051,21 +2050,7 @@ PROGRAM{
     LDMSGADDR	//  b _14 _13
     DROP	//  b _9
   }>
-  load_flags_sender PROC:<{
-    //  in_msg
-    CTOS	//  in_msg
-    4 LDU	//  flags in_msg
-    OVER
-    2 PUSHINT	//  flags in_msg flags _7=2
-    AND	//  flags in_msg _8
-    s0 s2 XCHG
-    1 PUSHINT	//  _8 in_msg flags _9=1
-    AND	//  _8 in_msg _10
-    SWAP	//  _8 _10 in_msg
-    LDMSGADDR	//  _8 _10 _16 _15
-    DROP	//  _8 _10 _11
-  }>
-  send_to_rbounceable PROCREF:<{
+  send_to_rbounceable PROCINLINE:<{
     //  packed_mode bounce dest value a m
     //  mode bounce dest value a m
     NEWC	//  mode bounce dest value a m _8
@@ -2095,13 +2080,13 @@ PROGRAM{
     SWAP	//  _25 mode
     SENDRAWMSG
   }>
-  send_to PROCREF:<{
+  send_to PROCINLINE:<{
     //  packed_mode dest value a m
     0 PUSHINT	//  packed_mode dest value a m _5=0
     4 -ROLL	//  packed_mode _5=0 dest value a m
     send_to_rbounceable INLINECALLDICT
   }>
-  send_text PROCREF:<{
+  send_text PROCINLINE:<{
     //  packed_mode dest value body
     //  mode dest value body
     0 PUSHINT	//  mode dest value body _6=0
@@ -2120,35 +2105,35 @@ PROGRAM{
     SWAP	//  _18 mode
     SENDRAWMSG
   }>
-  mode::forward_value PROCREF:<{
+  mode::forward_value PROCINLINE:<{
     // 
     64 PUSHINT	//  _0=64
   }>
-  mode::pay_transfer PROCREF:<{
+  mode::pay_transfer PROCINLINE:<{
     // 
     1 PUSHINT	//  _0=1
   }>
-  mode::destroy_into PROCREF:<{
+  mode::destroy_into PROCINLINE:<{
     // 
     7 PUSHPOW2	//  _1=128
   }>
-  job::ld_tag PROCREF:<{
+  job::ld_tag PROCINLINE:<{
     //  v
     2 LDU	//  _4 _3
     SWAP	//  _3 _4
   }>
-  job::ld_unlocked PROCREF:<{
+  job::ld_unlocked PROCINLINE:<{
     //  v
     LDMSGADDR	//  _1 v
     64 LDU	//  _1 _3 v
     LDREF	//  _1 _3 _6 v
   }>
-  offer::ld_tag PROCREF:<{
+  offer::ld_tag PROCINLINE:<{
     //  v
     2 LDU	//  _4 _3
     SWAP	//  _3 _4
   }>
-  offer::ld_unlocked PROCREF:<{
+  offer::ld_unlocked PROCINLINE:<{
     //  v
     LDMSGADDR	//  _1 v
     LDMSGADDR	//  _1 _3 v
@@ -2157,11 +2142,11 @@ PROGRAM{
     256 LDSLICE	//  _1 _3 _5 _8 _10 v
     160 PLDU	//  _1 _3 _5 _8 _10 _14
   }>
-  job::ld_msg_lock_on PROCREF:<{
+  job::ld_msg_lock_on PROCINLINE:<{
     //  v
     LDREF	//  _1 v
   }>
-  job::st_msg_collapse PROCREF:<{
+  job::st_msg_collapse PROCINLINE:<{
     //  v add_args
     DROP	//  v
     c4 PUSH	//  v _3
@@ -2173,25 +2158,25 @@ PROGRAM{
     32 STU	//  order_hash v
     160 STU	//  v
   }>
-  job::st_locked PROCREF:<{
+  job::st_locked PROCINLINE:<{
     //  v offer unlocked
     -ROT	//  unlocked v offer
     STSLICER	//  unlocked v
     SWAP	//  v unlocked
     STSLICER	//  v
   }>
-  job::ld_locked PROCREF:<{
+  job::ld_locked PROCINLINE:<{
     //  v
     LDMSGADDR	//  _1 v
     LDMSGADDR	//  _1 _3 v
     64 LDU	//  _1 _3 _5 v
     LDREF	//  _1 _3 _5 _8 v
   }>
-  offer::ld_msg_collapse PROCREF:<{
+  offer::ld_msg_collapse PROCINLINE:<{
     //  v
     160 PLDU	//  _2
   }>
-  offer::st_msg_take_stake PROCREF:<{
+  offer::st_msg_take_stake PROCINLINE:<{
     //  v stake
     1886156135 PUSHINT
     ROT	//  stake _3=1886156135 v
@@ -2204,11 +2189,11 @@ PROGRAM{
     SWAP	//  _13=0 v
     1 STU	//  v
   }>
-  offer::st_locked PROCREF:<{
+  offer::st_locked PROCINLINE:<{
     //  v unlocked
     STSLICER	//  v
   }>
-  offer::ld_locked PROCREF:<{
+  offer::ld_locked PROCINLINE:<{
     //  v
     LDMSGADDR	//  _1 v
     LDMSGADDR	//  _1 _3 v
@@ -2216,7 +2201,7 @@ PROGRAM{
     LDREF	//  _1 _3 _5 _8 v
     256 LDSLICE	//  _1 _3 _5 _8 _10 v
   }>
-  offer::st_msg_unplug PROCREF:<{
+  offer::st_msg_unplug PROCINLINE:<{
     //  v
     1685288050 PUSHINT	//  v _3=1685288050
     SWAP	//  _3=1685288050 v
@@ -2225,7 +2210,7 @@ PROGRAM{
     SWAP	//  _7 v
     64 STU	//  v
   }>
-  offer::st_msg_lock_success PROCREF:<{
+  offer::st_msg_lock_success PROCINLINE:<{
     //  v add_args
     UNTRIPLE	//  v worker desc worker_key
     173 PUSHINT	//  v worker desc worker_key _7=173
@@ -2238,19 +2223,19 @@ PROGRAM{
     SWAP	//  v worker_key
     STSLICER	//  v
   }>
-  job::ld_msg_lock_success PROCREF:<{
+  job::ld_msg_lock_success PROCINLINE:<{
     //  v
     LDMSGADDR	//  _1 v
     LDREF	//  _1 _3 v
   }>
-  offer::st_msg_lock_failed PROCREF:<{
+  offer::st_msg_lock_failed PROCINLINE:<{
     //  v add_args
     DROP	//  v
     212 PUSHINT	//  v _3=212
     SWAP	//  _3=212 v
     32 STU	//  v
   }>
-  offer::st_unlocked PROCREF:<{
+  offer::st_unlocked PROCINLINE:<{
     //  v job worker stake desc worker_key short_job_hash
     s6 s5 XCHG2	//  worker_key short_job_hash worker stake desc v job
     STSLICER	//  worker_key short_job_hash worker stake desc v
@@ -2263,11 +2248,11 @@ PROGRAM{
     STSLICER	//  short_job_hash v
     160 STU	//  v
   }>
-  job::st_unlocked PROCREF:<{
+  job::st_unlocked PROCINLINE:<{
     //  v locked_without_offer
     STSLICER	//  v
   }>
-  job::st_working PROCREF:<{
+  job::st_working PROCINLINE:<{
     //  v poster worker value poster_desc worker_desc poster_key worker_key
     s7 s6 XCHG2	//  poster_key worker_key worker value poster_desc worker_desc v poster
     STSLICER	//  poster_key worker_key worker value poster_desc worker_desc v
@@ -2289,14 +2274,14 @@ PROGRAM{
     ENDC	//  v _25
     STREFR	//  v
   }>
-  job::ld_working_main PROCREF:<{
+  job::ld_working_main PROCINLINE:<{
     //  v
     LDMSGADDR	//  _1 v
     LDMSGADDR	//  _1 _3 v
     2 PUSHINT	//  _1 _3 v _5=2
     PLDREFVAR	//  _1 _3 _6
   }>
-  job::wrap_for_signing PROCREF:<{
+  job::wrap_for_signing PROCINLINE:<{
     //  worker_ton_min worker_ton_max
     NEWC	//  worker_ton_min worker_ton_max _2
     x{FFFF726C3A3A6A6F623A3A7630} PUSHSLICE	//  worker_ton_min worker_ton_max _2 _3
@@ -2307,12 +2292,12 @@ PROGRAM{
     ENDC	//  _9
     CTOS	//  _10
   }>
-  job::parse_proposal_with_tag PROCREF:<{
+  job::parse_proposal_with_tag PROCINLINE:<{
     //  v
     2 LDU	//  tag v
     OVER	//  tag v tag
     3 EQINT	//  tag v _6
-    IFJMP:<{	//  tag v
+    IF:<{	//  tag v
       2DROP	// 
       1652841508 PUSHINT	//  _8=1652841508
       CONFIGOPTPARAM	//  c
@@ -2332,14 +2317,15 @@ PROGRAM{
       64 LDU	//  _20 _19=3 _21 _43 _42
       DROP	//  _20 _19=3 _21 _24
       s2 s3 XCHG	//  _19=3 _20 _21 _24
-    }>	//  tag v
-    9 PUSHPOW2	//  tag v _28=512
-    LDSLICEX	//  tag _27 v
-    64 LDU	//  tag _27 _30 v
-    64 LDU	//  tag _27 _30 _49 _48
-    DROP	//  tag _27 _30 _33
+    }>ELSE<{	//  tag v
+      9 PUSHPOW2	//  tag v _28=512
+      LDSLICEX	//  tag _27 v
+      64 LDU	//  tag _27 _30 v
+      64 LDU	//  tag _27 _30 _49 _48
+      DROP	//  tag _27 _30 _33
+    }>
   }>
-  job::parse_finish_message PROCREF:<{
+  job::parse_finish_message PROCINLINE:<{
     //  v
     LDREF	//  _1 v
     SWAP	//  v _1
@@ -2348,7 +2334,7 @@ PROGRAM{
     PLDREF	//  _3 _4
     CTOS	//  _3 _5
   }>
-  parse_proposal_check_sig PROCREF:<{
+  parse_proposal_check_sig PROCINLINE:<{
     //  v keys
     DROP	//  v
     job::parse_proposal_with_tag INLINECALLDICT	//  _18 _19 _20 _21
@@ -2409,6 +2395,7 @@ PROGRAM{
     DROP	//  _9
   }>
   recv_internal PROC:<{
+    c2 SAVE
     SAMEALTSAVE	//  msg_value in_msg in_msg_body
     DUP	//  msg_value in_msg in_msg_body in_msg_body
     SBITS	//  msg_value in_msg in_msg_body _3
@@ -2417,7 +2404,7 @@ PROGRAM{
       3 BLKDROP	// 
     }>	//  msg_value in_msg in_msg_body
     SWAP	//  msg_value in_msg_body in_msg
-    load_bounced_sender CALLDICT	//  msg_value in_msg_body bounced sender
+    load_bounced_sender INLINECALLDICT	//  msg_value in_msg_body bounced sender
     SWAP	//  msg_value in_msg_body sender bounced
     IFJMP:<{	//  msg_value in_msg_body sender
       3 BLKDROP	// 

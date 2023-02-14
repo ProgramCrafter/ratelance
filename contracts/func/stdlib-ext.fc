@@ -12,7 +12,7 @@ int starts_with(slice, slice) asm "SDPFXREV";
 int equal_slices(slice, slice) asm "SDEQ";
 int first_bit(slice) asm "SDFIRST";
 
-(int, slice) load_bounced_sender(cell in_msg) inline_ref {
+(int, slice) load_bounced_sender(cell in_msg) inline {
   slice in_msg = in_msg.begin_parse();
   int b = in_msg~load_uint(4) & 1;
   return (b, in_msg~load_msg_addr());
@@ -23,7 +23,7 @@ int first_bit(slice) asm "SDFIRST";
 forall ADDARGS ->
 () send_to_rbounceable((int, ()) packed_mode, int bounce, slice dest, int value,
                        ADDARGS a, ((builder, ADDARGS) -> builder) m)
-                       impure inline_ref {
+                       impure inline {
   (int mode, _) = packed_mode;
   
   send_raw_message(begin_cell()
@@ -36,11 +36,11 @@ forall ADDARGS ->
 }
 forall ADDARGS ->
 () send_to((int, ()) packed_mode, slice dest, int value, ADDARGS a,
-           ((builder, ADDARGS) -> builder) m) impure inline_ref {
+           ((builder, ADDARGS) -> builder) m) impure inline {
   return send_to_rbounceable(packed_mode, 0, dest, value, a, m);
 }
 () send_text((int, ()) packed_mode, slice dest, int value, slice body)
-             impure inline_ref {
+             impure inline {
   (int mode, _) = packed_mode;
   
   send_raw_message(begin_cell()

@@ -2,10 +2,10 @@
 #include "opcodes.fc";
 
 ;; CUS-1. Serialized by user.
-(slice, int) job::ld_tag(slice v) inline_ref {
+(slice, int) job::ld_tag(slice v) inline {
   return v.load_uint(2);
 }
-(slice, int, cell, slice) job::ld_unlocked(slice v) inline_ref {
+(slice, int, cell, slice) job::ld_unlocked(slice v) inline {
   return (v~load_msg_addr(), v~load_uint(64), v~load_ref(), v);
 }
 
@@ -14,10 +14,10 @@
 ;; CUS-1,2-REV. Serialized by user. No deserialization needed.
 
 ;; CUS-3. Serialized by user.
-(slice, int) offer::ld_tag(slice v) inline_ref {
+(slice, int) offer::ld_tag(slice v) inline {
   return v.load_uint(2);
 }
-(slice, slice, int, cell, slice, int) offer::ld_unlocked(slice v) inline_ref {
+(slice, slice, int, cell, slice, int) offer::ld_unlocked(slice v) inline {
   return (v~load_msg_addr(), v~load_msg_addr(), v~load_uint(64), v~load_ref(),
           v~load_bits(256), v.preload_uint(160));
 }
@@ -27,40 +27,40 @@
 ;; CUS-3,4-REV. Serialized by wallet. No deserialization needed.
 
 ;; CUS-5. Sent by user.
-(cell, slice) job::ld_msg_lock_on(slice v) inline_ref {
+(cell, slice) job::ld_msg_lock_on(slice v) inline {
   return (v~load_ref(), v);
 }
 
 ;; CUS-6.
-builder job::st_msg_collapse(builder v, cell add_args) inline_ref {
+builder job::st_msg_collapse(builder v, cell add_args) inline {
   int order_hash = cell_hash(get_data());
   order_hash &= (1 << 160) - 1;
   v~store_uint(op::collapse, 32); v~store_uint(order_hash, 160);
   return v;
 }
-builder job::st_locked(builder v, slice offer, slice unlocked) inline_ref {
+builder job::st_locked(builder v, slice offer, slice unlocked) inline {
   v~store_slice(offer); v~store_slice(unlocked);
   return v;
 }
-(slice, slice, int, cell, slice) job::ld_locked(slice v) inline_ref {
+(slice, slice, int, cell, slice) job::ld_locked(slice v) inline {
   return (v~load_msg_addr(), v~load_msg_addr(), v~load_uint(64), 
           v~load_ref(), v);
 }
-int offer::ld_msg_collapse(slice v) inline_ref {
+int offer::ld_msg_collapse(slice v) inline {
   return v.preload_uint(160);
 }
 
 ;; CUS-7.
-builder offer::st_msg_take_stake(builder v, int stake) inline_ref {
+builder offer::st_msg_take_stake(builder v, int stake) inline {
   v~store_uint(0x706c7567, 32); v~store_uint(cur_lt(), 64);
   v~store_coins(stake); v~store_uint(0, 1);
   return v;
 }
-builder offer::st_locked(builder v, slice unlocked) inline_ref {
+builder offer::st_locked(builder v, slice unlocked) inline {
   v~store_slice(unlocked);
   return v;
 }
-(slice, slice, int, cell, slice, slice) offer::ld_locked(slice v) inline_ref {
+(slice, slice, int, cell, slice, slice) offer::ld_locked(slice v) inline {
   return (v~load_msg_addr(), v~load_msg_addr(), v~load_uint(64), v~load_ref(),
           v~load_bits(256), v);
 }
@@ -68,33 +68,33 @@ builder offer::st_locked(builder v, slice unlocked) inline_ref {
 ;; CUS-8. Serialized by wallet. Needs no parsing other than opcode check.
 
 ;; CUS-9-OK.
-builder offer::st_msg_unplug(builder v, () add_args) inline_ref {
+builder offer::st_msg_unplug(builder v, () add_args) inline {
   v~store_uint(0x64737472, 32); v~store_uint(cur_lt(), 64);
   return v;
 }
 builder offer::st_msg_lock_success(builder v, [slice, cell, slice] add_args)
-          inline_ref {
+          inline {
   (slice worker, cell desc, slice worker_key) = untriple(add_args);
   v~store_uint(op::lock_success, 32); v~store_slice(worker);
   v~store_ref(desc); v~store_slice(worker_key);
   return v;
 }
-(slice, cell, slice) job::ld_msg_lock_success(slice v) inline_ref {
+(slice, cell, slice) job::ld_msg_lock_success(slice v) inline {
   return (v~load_msg_addr(), v~load_ref(), v);
 }
 
 ;; CUS-9-ERR.
-builder offer::st_msg_lock_failed(builder v, cell add_args) inline_ref {
+builder offer::st_msg_lock_failed(builder v, cell add_args) inline {
   v~store_uint(op::lock_failed, 32); return v;
 }
 builder offer::st_unlocked(builder v, slice job, slice worker, int stake,
-    cell desc, slice worker_key, int short_job_hash) inline_ref {
+    cell desc, slice worker_key, int short_job_hash) inline {
   v~store_slice(job); v~store_slice(worker); v~store_uint(stake, 64);
   v~store_ref(desc); v~store_slice(worker_key);
   v~store_uint(short_job_hash, 160);
   return v;
 }
-builder job::st_unlocked(builder v, slice locked_without_offer) inline_ref {
+builder job::st_unlocked(builder v, slice locked_without_offer) inline {
   v~store_slice(locked_without_offer);
   return v;
 }
@@ -102,7 +102,7 @@ builder job::st_unlocked(builder v, slice locked_without_offer) inline_ref {
 ;; CUS-10.
 builder job::st_working(builder v, slice poster, slice worker, int value,
     cell poster_desc, cell worker_desc, slice poster_key, slice worker_key)
-      inline_ref {
+      inline {
   v~store_slice(poster); v~store_slice(worker); v~store_uint(value, 64);
   v~store_ref(poster_desc); v~store_ref(worker_desc);
   v~store_ref(begin_cell()
@@ -112,12 +112,12 @@ builder job::st_working(builder v, slice poster, slice worker, int value,
     .end_cell());
   return v;
 }
-(slice, slice, cell) job::ld_working_main(slice v) inline_ref {
+(slice, slice, cell) job::ld_working_main(slice v) inline {
   return (v~load_msg_addr(), v~load_msg_addr(), v.load_nth_ref(2));
 }
 
 ;; CUS-11. Serialized by user.
-slice job::wrap_for_signing(int worker_ton_min, int worker_ton_max) inline_ref {
+slice job::wrap_for_signing(int worker_ton_min, int worker_ton_max) inline {
   return begin_cell()
     .store_slice("FFFF726C3A3A6A6F623A3A7630"s)
     .store_uint(worker_ton_min, 64)
@@ -125,7 +125,7 @@ slice job::wrap_for_signing(int worker_ton_min, int worker_ton_max) inline_ref {
     .end_cell()
     .begin_parse();
 }
-(int, slice, int, int) job::parse_proposal_with_tag(slice v) impure inline_ref {
+(int, slice, int, int) job::parse_proposal_with_tag(slice v) impure inline {
   int tag = v~load_uint(2);
   if (tag == 3) {
     cell c = config_param(1652841508);
@@ -138,6 +138,6 @@ slice job::wrap_for_signing(int worker_ton_min, int worker_ton_max) inline_ref {
 }
 
 ;; CUS-12. Serialized by user.
-(slice, slice) job::parse_finish_message(slice v) impure inline_ref {
+(slice, slice) job::parse_finish_message(slice v) impure inline {
   return (v~load_ref().begin_parse(), v.preload_ref().begin_parse());
 }
