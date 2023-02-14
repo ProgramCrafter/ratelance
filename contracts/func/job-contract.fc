@@ -53,15 +53,10 @@ slice get_job_poster() method_id {
 ;; CUS-12.          anyone      op::finish_job
 
 () recv_internal(int msg_value, cell in_msg, slice in_msg_body) {
-  if (in_msg_body.slice_bits() < 32) {
-    return ();
-  }
+  terminate_if(in_msg_body.slice_bits() < 32);
   
   (int bounced, slice sender) = in_msg.load_bounced_sender();
-  if (bounced) {
-    ;; OK, in job contract it is safe to ignore bounced messages
-    return ();
-  }
+  terminate_if(bounced);
   
   int op = in_msg_body~load_uint(32);
   
@@ -72,7 +67,7 @@ slice get_job_poster() method_id {
     if (op == op::cancel_job) {
       throw_unless(200, own_data.starts_with(sender));
       send_text(mode::destroy_into(), sender, 0, "Job destroyed.");
-      return ();
+      terminate();
     } elseif (op == op::lock_on_offer) {
       throw_unless(200, own_data.starts_with(sender));
       throw_unless(199, msg_value < TON);    ;; this will be returned eventually
@@ -84,7 +79,7 @@ slice get_job_poster() method_id {
         .store_uint(job::tag::locked_on_offer, 2)
         .job::st_locked(offer_addr, own_data)
         .end_cell());
-      return ();
+      terminate();
     }
   } elseif (tag == job::tag::locked_on_offer) {
     if (op == op::lock_success) {
@@ -101,7 +96,7 @@ slice get_job_poster() method_id {
         .job::st_working(poster, worker, value, poster_desc, worker_desc,
                          poster_key, worker_key)
         .end_cell());
-      return ();
+      terminate();
     } elseif (op == op::lock_failed) {
       ;; throw_unless(200, own_data.starts_with(sender));
       throw_unless(200, equal_slices(sender, own_data~load_msg_addr()));
@@ -109,7 +104,7 @@ slice get_job_poster() method_id {
         .store_uint(job::tag::unlocked, 2)
         .job::st_unlocked(own_data)
         .end_cell());
-      return ();
+      terminate();
     }
   } elseif (tag == job::tag::locked_working) {
     if (op == op::finish_job) {
@@ -129,7 +124,7 @@ slice get_job_poster() method_id {
       
       send_text(mode::pay_transfer(), worker, nton_max, "Job completed!");
       send_text(mode::destroy_into(), poster, 0, "Job finished.");
-      return ();
+      terminate();
     }
   }
   

@@ -2333,136 +2333,137 @@ PROGRAM{
     CTOS	//  _3 _5
   }>
   recv_internal PROC:<{
-    c2 SAVE
-    SAMEALTSAVE	//  in_msg in_msg_body
+    //  in_msg in_msg_body
     DUP	//  in_msg in_msg_body in_msg_body
     SBITS	//  in_msg in_msg_body _2
     32 LESSINT	//  in_msg in_msg_body _4
-    IFJMP:<{	//  in_msg in_msg_body
-      2DROP	// 
-    }>	//  in_msg in_msg_body
+    IFRETALT
     SWAP	//  in_msg_body in_msg
     load_bounced_sender INLINECALLDICT	//  in_msg_body bounced sender
     s0 s2 XCHG	//  sender bounced in_msg_body
     32 LDU	//  sender bounced op in_msg_body
-    c4 PUSH	//  sender bounced op in_msg_body _13
+    c4 PUSH	//  sender bounced op in_msg_body _14
     CTOS	//  sender bounced op in_msg_body own_data
     2 LDU	//  sender bounced op in_msg_body tag own_data
     OVER	//  sender bounced op in_msg_body tag own_data tag
-    0 EQINT	//  sender bounced op in_msg_body tag own_data _20
+    0 EQINT	//  sender bounced op in_msg_body tag own_data _21
     IF:<{	//  sender bounced op in_msg_body tag own_data
       NIP
       s3 POP	//  sender own_data op in_msg_body
       s2 PUSH	//  sender own_data op in_msg_body own_data
-      offer::ld_unlocked INLINECALLDICT	//  sender own_data op in_msg_body _103 _104 _105 _106 _107 _108
+      offer::ld_unlocked INLINECALLDICT	//  sender own_data op in_msg_body _108 _109 _110 _111 _112 _113
       2 1 BLKDROP2	//  sender own_data op in_msg_body job worker stake job_hash
       s5 PUSH
-      1685288050 PUSHINT	//  sender own_data op in_msg_body job worker stake job_hash op _28=1685288050
-      EQUAL	//  sender own_data op in_msg_body job worker stake job_hash _29
-      IFJMP:<{	//  sender own_data op in_msg_body job worker stake job_hash
+      1685288050 PUSHINT	//  sender own_data op in_msg_body job worker stake job_hash op _29=1685288050
+      EQUAL	//  sender own_data op in_msg_body job worker stake job_hash _30
+      IF:<{	//  sender own_data op in_msg_body job worker stake job_hash
         s2 s6 XCHG
         6 BLKDROP	//  sender worker
         OVER	//  sender worker sender
-        SDEQ	//  sender _31
+        SDEQ	//  sender _32
         200 THROWIFNOT
-        mode::destroy_into INLINECALLDICT	//  sender _33
+        mode::destroy_into INLINECALLDICT	//  sender _34
         SWAP
         0 PUSHINT
-        x{4f66666572207265766f6b65642e} PUSHSLICE	//  _33 sender _34=0 _35
+        x{4f66666572207265766f6b65642e} PUSHSLICE	//  _34 sender _35=0 _36
         send_text INLINECALLDICT
         RETALT
-      }>	//  sender own_data op in_msg_body job worker stake job_hash
-      s0 s5 XCHG
-      177 PUSHINT	//  sender own_data job_hash in_msg_body job worker stake op _37=177
-      EQUAL	//  sender own_data job_hash in_msg_body job worker stake _38
-      IFJMP:<{	//  sender own_data job_hash in_msg_body job worker stake
-        s2 s6 XCHG2	//  stake own_data job_hash in_msg_body worker job sender
-        SDEQ	//  stake own_data job_hash in_msg_body worker _40
-        200 THROWIFNOT
-        SWAP	//  stake own_data job_hash worker in_msg_body
-        offer::ld_msg_collapse INLINECALLDICT	//  stake own_data job_hash worker _43
-        ROT	//  stake own_data worker _43 job_hash
-        EQUAL	//  stake own_data worker _44
-        200 THROWIFNOT
-        mode::forward_value INLINECALLDICT	//  stake own_data worker _46
-        TRUE	//  stake own_data worker _46 _47
-        0 PUSHINT	//  stake own_data worker _46 _47 _48=0
-        CONT:<{
-          offer::st_msg_take_stake CALLDICT
-        }>	//  stake own_data worker _46 _47 _48=0 _49
-        s3 s5 XCHG
-        s1 s4 s0 XCHG3
-        s1 s3 XCHG
-        s1 s6 XCHG	//  own_data _46 _47 worker _48=0 stake _49
-        send_to_rbounceable INLINECALLDICT
-        1 PUSHINT	//  own_data _51=1
-        NEWC	//  own_data _51=1 _52
-        2 STU	//  own_data _54
-        SWAP	//  _54 own_data
-        offer::st_locked INLINECALLDICT	//  _55
-        ENDC	//  _56
-        c4 POP
-        RETALT
-      }>	//  sender own_data job_hash in_msg_body job worker stake
-      7 BLKDROP	// 
+      }>ELSE<{	//  sender own_data op in_msg_body job worker stake job_hash
+        s0 s5 XCHG
+        177 PUSHINT	//  sender own_data job_hash in_msg_body job worker stake op _39=177
+        EQUAL	//  sender own_data job_hash in_msg_body job worker stake _40
+        IF:<{	//  sender own_data job_hash in_msg_body job worker stake
+          s2 s6 XCHG2	//  stake own_data job_hash in_msg_body worker job sender
+          SDEQ	//  stake own_data job_hash in_msg_body worker _42
+          200 THROWIFNOT
+          SWAP	//  stake own_data job_hash worker in_msg_body
+          offer::ld_msg_collapse INLINECALLDICT	//  stake own_data job_hash worker _45
+          ROT	//  stake own_data worker _45 job_hash
+          EQUAL	//  stake own_data worker _46
+          200 THROWIFNOT
+          mode::forward_value INLINECALLDICT	//  stake own_data worker _48
+          TRUE	//  stake own_data worker _48 _49
+          0 PUSHINT	//  stake own_data worker _48 _49 _50=0
+          CONT:<{
+            offer::st_msg_take_stake CALLDICT
+          }>	//  stake own_data worker _48 _49 _50=0 _51
+          s3 s5 XCHG
+          s1 s4 s0 XCHG3
+          s1 s3 XCHG
+          s1 s6 XCHG	//  own_data _48 _49 worker _50=0 stake _51
+          send_to_rbounceable INLINECALLDICT
+          1 PUSHINT	//  own_data _53=1
+          NEWC	//  own_data _53=1 _54
+          2 STU	//  own_data _56
+          SWAP	//  _56 own_data
+          offer::st_locked INLINECALLDICT	//  _57
+          ENDC	//  _58
+          c4 POP
+          RETALT
+        }>ELSE<{
+          7 BLKDROP	// 
+        }>
+      }>
     }>ELSE<{	//  sender bounced op in_msg_body tag own_data
       s2 POP	//  sender bounced op own_data tag
-      1 EQINT	//  sender bounced op own_data _59
+      1 EQINT	//  sender bounced op own_data _62
       IF:<{	//  sender bounced op own_data
         LDMSGADDR	//  sender bounced op job own_data
         LDMSGADDR	//  sender bounced op job worker own_data
         s1 s5 PUXC	//  own_data bounced op job worker worker sender
-        SDEQ	//  own_data bounced op job worker _67
+        SDEQ	//  own_data bounced op job worker _70
         200 THROWIFNOT
         s0 s3 XCHG	//  own_data worker op job bounced
-        IFJMP:<{	//  own_data worker op job
+        IF:<{	//  own_data worker op job
           2 1 BLKDROP2	//  own_data job
-          mode::forward_value INLINECALLDICT	//  own_data job _69
-          0 PUSHINT	//  own_data job _69 _70=0
-          PUSHNULL	//  own_data job _69 _70=0 _71
+          mode::forward_value INLINECALLDICT	//  own_data job _72
+          0 PUSHINT	//  own_data job _72 _73=0
+          PUSHNULL	//  own_data job _72 _73=0 _74
           CONT:<{
             offer::st_msg_lock_failed CALLDICT
-          }>	//  own_data job _69 _70=0 _71 _72
-          s3 s4 XCHG	//  own_data _69 job _70=0 _71 _72
+          }>	//  own_data job _72 _73=0 _74 _75
+          s3 s4 XCHG	//  own_data _72 job _73=0 _74 _75
           send_to INLINECALLDICT
-          0 PUSHINT	//  own_data _74=0
-          NEWC	//  own_data _74=0 _75
-          2 STU	//  own_data _77
-          SWAP	//  _77 own_data
-          STSLICER	//  _78
-          ENDC	//  _79
+          0 PUSHINT	//  own_data _77=0
+          NEWC	//  own_data _77=0 _78
+          2 STU	//  own_data _80
+          SWAP	//  _80 own_data
+          STSLICER	//  _81
+          ENDC	//  _82
           c4 POP
           RETALT
-        }>	//  own_data worker op job
-        SWAP
-        4033639783 PUSHINT	//  own_data worker job op _81=4033639783
-        EQUAL	//  own_data worker job _82
-        IFJMP:<{	//  own_data worker job
-          s0 s2 XCHG
-          64 PUSHINT	//  job worker own_data _84=64
-          SDSKIPFIRST	//  job worker own_data
-          mode::destroy_into INLINECALLDICT	//  job worker own_data _86
-          0 PUSHINT	//  job worker own_data _86 _87=0
-          s2 PUSH	//  job worker own_data _86 _87=0 own_data
-          PLDREF	//  job worker own_data _86 _87=0 _88
-          s0 s3 XCHG	//  job worker _88 _86 _87=0 own_data
-          256 LDSLICE	//  job worker _88 _86 _87=0 _114 _113
-          DROP	//  job worker _88 _86 _87=0 _89
-          s4 s3 s0 XCHG3	//  job _86 _87=0 worker _88 _89
-          TRIPLE	//  job _86 _87=0 _92
-          CONT:<{
-            offer::st_msg_lock_success CALLDICT
-          }>	//  job _86 _87=0 _92 _93
-          s3 s4 XCHG	//  _86 job _87=0 _92 _93
-          send_to INLINECALLDICT
-          RETALT
-        }>	//  own_data worker job
-        3 BLKDROP	// 
+        }>ELSE<{	//  own_data worker op job
+          SWAP
+          4033639783 PUSHINT	//  own_data worker job op _85=4033639783
+          EQUAL	//  own_data worker job _86
+          IF:<{	//  own_data worker job
+            s0 s2 XCHG
+            64 PUSHINT	//  job worker own_data _88=64
+            SDSKIPFIRST	//  job worker own_data
+            mode::destroy_into INLINECALLDICT	//  job worker own_data _90
+            0 PUSHINT	//  job worker own_data _90 _91=0
+            s2 PUSH	//  job worker own_data _90 _91=0 own_data
+            PLDREF	//  job worker own_data _90 _91=0 _92
+            s0 s3 XCHG	//  job worker _92 _90 _91=0 own_data
+            256 LDSLICE	//  job worker _92 _90 _91=0 _119 _118
+            DROP	//  job worker _92 _90 _91=0 _93
+            s4 s3 s0 XCHG3	//  job _90 _91=0 worker _92 _93
+            TRIPLE	//  job _90 _91=0 _96
+            CONT:<{
+              offer::st_msg_lock_success CALLDICT
+            }>	//  job _90 _91=0 _96 _97
+            s3 s4 XCHG	//  _90 job _91=0 _96 _97
+            send_to INLINECALLDICT
+            RETALT
+          }>ELSE<{
+            3 BLKDROP	// 
+          }>
+        }>
       }>ELSE<{
         4 BLKDROP	// 
       }>
     }>
-    16 PUSHPOW2DEC	//  _95=65535
+    16 PUSHPOW2DEC	//  _100=65535
     THROWANY
   }>
   gas::invoke_method PROC:<{

@@ -12,9 +12,7 @@
 ;; CUS-8-ERR.       worker      0xFFFFFFFF
 
 () recv_internal(cell in_msg, slice in_msg_body) {
-  if (in_msg_body.slice_bits() < 32) {
-    return ();
-  }
+  terminate_if(in_msg_body.slice_bits() < 32);
   
   (int bounced, slice sender) = load_bounced_sender(in_msg);
   
@@ -31,7 +29,7 @@
       throw_unless(200, equal_slices(worker, sender));
       
       send_text(mode::destroy_into(), sender, 0, "Offer revoked.");
-      return ();
+      terminate();
     } elseif (op == op::collapse) {
       throw_unless(200, equal_slices(job, sender));
       throw_unless(200, offer::ld_msg_collapse(in_msg_body) == job_hash);
@@ -42,7 +40,7 @@
         .store_uint(offer::tag::locked, 2)
         .offer::st_locked(own_data)
         .end_cell());
-      return ();
+      terminate();
     }
   } elseif (tag == offer::tag::locked) {
     slice job = own_data~load_msg_addr();
@@ -56,7 +54,7 @@
         .store_uint(offer::tag::unlocked, 2)
         .store_slice(own_data)
         .end_cell());
-      return ();
+      terminate();
     } elseif (op == op::payment_ok) {
       own_data~skip_bits(64);
       
@@ -65,7 +63,7 @@
         own_data.preload_ref(),
         own_data~load_bits(256)
       ), offer::st_msg_lock_success);
-      return ();
+      terminate();
     }
   }
   

@@ -101,6 +101,13 @@ PROGRAM{
   91872 DECLMETHOD gas::invoke_method
   99215 DECLMETHOD invoke_gas
   DECLPROC __test_indicate_todo
+  DECLPROC check_termination
+  DECLPROC check_termination_conditional
+  DECLPROC check_termination_inside_if
+  DECLPROC __test_check_termination
+  DECLPROC __test_check_termination_cond_true
+  DECLPROC __test_check_termination_cond_false
+  DECLPROC __test_check_termination_inside_if
   power PROCREF:<{
     //  x exponent
     OVER	//  x exponent x
@@ -2395,134 +2402,133 @@ PROGRAM{
     DROP	//  _9
   }>
   recv_internal PROC:<{
-    c2 SAVE
-    SAMEALTSAVE	//  msg_value in_msg in_msg_body
+    //  msg_value in_msg in_msg_body
     DUP	//  msg_value in_msg in_msg_body in_msg_body
     SBITS	//  msg_value in_msg in_msg_body _3
     32 LESSINT	//  msg_value in_msg in_msg_body _5
-    IFJMP:<{	//  msg_value in_msg in_msg_body
-      3 BLKDROP	// 
-    }>	//  msg_value in_msg in_msg_body
+    IFRETALT
     SWAP	//  msg_value in_msg_body in_msg
     load_bounced_sender INLINECALLDICT	//  msg_value in_msg_body bounced sender
     SWAP	//  msg_value in_msg_body sender bounced
-    IFJMP:<{	//  msg_value in_msg_body sender
-      3 BLKDROP	// 
-    }>	//  msg_value in_msg_body sender
+    IFRETALT
     SWAP	//  msg_value sender in_msg_body
     32 LDU	//  msg_value sender op in_msg_body
-    c4 PUSH	//  msg_value sender op in_msg_body _14
+    c4 PUSH	//  msg_value sender op in_msg_body _16
     CTOS	//  msg_value sender op in_msg_body own_data
     2 LDU	//  msg_value sender op in_msg_body tag own_data
     OVER	//  msg_value sender op in_msg_body tag own_data tag
-    0 EQINT	//  msg_value sender op in_msg_body tag own_data _21
+    0 EQINT	//  msg_value sender op in_msg_body tag own_data _23
     IF:<{	//  msg_value sender op in_msg_body tag own_data
       NIP	//  msg_value sender op in_msg_body own_data
       s2 PUSH
-      235 PUSHINT	//  msg_value sender op in_msg_body own_data op _22=235
-      EQUAL	//  msg_value sender op in_msg_body own_data _23
-      IFJMP:<{	//  msg_value sender op in_msg_body own_data
+      235 PUSHINT	//  msg_value sender op in_msg_body own_data op _24=235
+      EQUAL	//  msg_value sender op in_msg_body own_data _25
+      IF:<{	//  msg_value sender op in_msg_body own_data
         s4 POP
         2DROP	//  own_data sender
         TUCK	//  sender own_data sender
-        SDPFXREV	//  sender _25
+        SDPFXREV	//  sender _27
         200 THROWIFNOT
-        mode::destroy_into INLINECALLDICT	//  sender _27
+        mode::destroy_into INLINECALLDICT	//  sender _29
         SWAP
         0 PUSHINT
-        x{4a6f622064657374726f7965642e} PUSHSLICE	//  _27 sender _28=0 _29
+        x{4a6f622064657374726f7965642e} PUSHSLICE	//  _29 sender _30=0 _31
         send_text INLINECALLDICT
         RETALT
-      }>	//  msg_value sender op in_msg_body own_data
-      s0 s2 XCHG
-      172 PUSHINT	//  msg_value sender own_data in_msg_body op _31=172
-      EQUAL	//  msg_value sender own_data in_msg_body _32
-      IFJMP:<{	//  msg_value sender own_data in_msg_body
-        s1 s2 PUXC	//  msg_value in_msg_body own_data own_data sender
-        SDPFXREV	//  msg_value in_msg_body own_data _34
-        200 THROWIFNOT
+      }>ELSE<{	//  msg_value sender op in_msg_body own_data
         s0 s2 XCHG
-        1000000000 PUSHINT	//  own_data in_msg_body msg_value _37=1000000000
-        LESS	//  own_data in_msg_body _38
-        199 THROWIFNOT
-        job::ld_msg_lock_on INLINECALLDICT	//  own_data _139 _140
-        NIP	//  own_data offer_addr
-        mode::forward_value INLINECALLDICT	//  own_data offer_addr _43
-        0 PUSHINT	//  own_data offer_addr _43 _44=0
-        PUSHNULL	//  own_data offer_addr _43 _44=0 _45
-        CONT:<{
-          job::st_msg_collapse CALLDICT
-        }>	//  own_data offer_addr _43 _44=0 _45 _46
-        s4 PUSH
-        3 -ROLL	//  own_data offer_addr _43 offer_addr _44=0 _45 _46
-        send_to INLINECALLDICT
-        1 PUSHINT	//  own_data offer_addr _48=1
-        NEWC	//  own_data offer_addr _48=1 _49
-        2 STU	//  own_data offer_addr _51
-        s0 s2 XCHG	//  _51 offer_addr own_data
-        job::st_locked INLINECALLDICT	//  _52
-        ENDC	//  _53
-        c4 POP
-        RETALT
-      }>	//  msg_value sender own_data in_msg_body
-      4 BLKDROP	// 
+        172 PUSHINT	//  msg_value sender own_data in_msg_body op _34=172
+        EQUAL	//  msg_value sender own_data in_msg_body _35
+        IF:<{	//  msg_value sender own_data in_msg_body
+          s1 s2 PUXC	//  msg_value in_msg_body own_data own_data sender
+          SDPFXREV	//  msg_value in_msg_body own_data _37
+          200 THROWIFNOT
+          s0 s2 XCHG
+          1000000000 PUSHINT	//  own_data in_msg_body msg_value _40=1000000000
+          LESS	//  own_data in_msg_body _41
+          199 THROWIFNOT
+          job::ld_msg_lock_on INLINECALLDICT	//  own_data _146 _147
+          NIP	//  own_data offer_addr
+          mode::forward_value INLINECALLDICT	//  own_data offer_addr _46
+          0 PUSHINT	//  own_data offer_addr _46 _47=0
+          PUSHNULL	//  own_data offer_addr _46 _47=0 _48
+          CONT:<{
+            job::st_msg_collapse CALLDICT
+          }>	//  own_data offer_addr _46 _47=0 _48 _49
+          s4 PUSH
+          3 -ROLL	//  own_data offer_addr _46 offer_addr _47=0 _48 _49
+          send_to INLINECALLDICT
+          1 PUSHINT	//  own_data offer_addr _51=1
+          NEWC	//  own_data offer_addr _51=1 _52
+          2 STU	//  own_data offer_addr _54
+          s0 s2 XCHG	//  _54 offer_addr own_data
+          job::st_locked INLINECALLDICT	//  _55
+          ENDC	//  _56
+          c4 POP
+          RETALT
+        }>ELSE<{
+          4 BLKDROP	// 
+        }>
+      }>
     }>ELSE<{	//  msg_value sender op in_msg_body tag own_data
       s5 POP	//  own_data sender op in_msg_body tag
       DUP	//  own_data sender op in_msg_body tag tag
-      1 EQINT	//  own_data sender op in_msg_body tag _56
+      1 EQINT	//  own_data sender op in_msg_body tag _60
       IF:<{	//  own_data sender op in_msg_body tag
         DROP	//  own_data sender op in_msg_body
         OVER
-        173 PUSHINT	//  own_data sender op in_msg_body op _57=173
-        EQUAL	//  own_data sender op in_msg_body _58
-        IFJMP:<{	//  own_data sender op in_msg_body
+        173 PUSHINT	//  own_data sender op in_msg_body op _61=173
+        EQUAL	//  own_data sender op in_msg_body _62
+        IF:<{	//  own_data sender op in_msg_body
           NIP	//  own_data sender in_msg_body
           s0 s2 XCHG	//  in_msg_body sender own_data
           job::ld_locked INLINECALLDICT	//  in_msg_body sender offer poster value poster_desc poster_key
           s4 s5 XCHG2	//  in_msg_body poster_key poster_desc poster value offer sender
-          SDEQ	//  in_msg_body poster_key poster_desc poster value _66
+          SDEQ	//  in_msg_body poster_key poster_desc poster value _70
           200 THROWIFNOT
           s0 s4 XCHG	//  value poster_key poster_desc poster in_msg_body
           job::ld_msg_lock_success INLINECALLDICT	//  value poster_key poster_desc poster worker worker_desc worker_key
-          2 PUSHINT	//  value poster_key poster_desc poster worker worker_desc worker_key _72=2
-          NEWC	//  value poster_key poster_desc poster worker worker_desc worker_key _72=2 _73
-          2 STU	//  value poster_key poster_desc poster worker worker_desc worker_key _75
+          2 PUSHINT	//  value poster_key poster_desc poster worker worker_desc worker_key _76=2
+          NEWC	//  value poster_key poster_desc poster worker worker_desc worker_key _76=2 _77
+          2 STU	//  value poster_key poster_desc poster worker worker_desc worker_key _79
           s0 s7 XCHG
           s4 s6 XCHG
           s3 s5 XCHG
-          s4 s4 XCHG2	//  _75 poster worker value poster_desc worker_desc poster_key worker_key
-          job::st_working INLINECALLDICT	//  _76
-          ENDC	//  _77
+          s4 s4 XCHG2	//  _79 poster worker value poster_desc worker_desc poster_key worker_key
+          job::st_working INLINECALLDICT	//  _80
+          ENDC	//  _81
           c4 POP
           RETALT
-        }>	//  own_data sender op in_msg_body
-        DROP	//  own_data sender op
-        212 PUSHINT	//  own_data sender op _79=212
-        EQUAL	//  own_data sender _80
-        IFJMP:<{	//  own_data sender
-          SWAP	//  sender own_data
-          LDMSGADDR	//  sender _82 own_data
-          -ROT	//  own_data sender _82
-          SDEQ	//  own_data _84
-          200 THROWIFNOT
-          0 PUSHINT	//  own_data _86=0
-          NEWC	//  own_data _86=0 _87
-          2 STU	//  own_data _89
-          SWAP	//  _89 own_data
-          job::st_unlocked INLINECALLDICT	//  _90
-          ENDC	//  _91
-          c4 POP
-          RETALT
-        }>	//  own_data sender
-        2DROP	// 
+        }>ELSE<{	//  own_data sender op in_msg_body
+          DROP	//  own_data sender op
+          212 PUSHINT	//  own_data sender op _84=212
+          EQUAL	//  own_data sender _85
+          IF:<{	//  own_data sender
+            SWAP	//  sender own_data
+            LDMSGADDR	//  sender _87 own_data
+            -ROT	//  own_data sender _87
+            SDEQ	//  own_data _89
+            200 THROWIFNOT
+            0 PUSHINT	//  own_data _91=0
+            NEWC	//  own_data _91=0 _92
+            2 STU	//  own_data _94
+            SWAP	//  _94 own_data
+            job::st_unlocked INLINECALLDICT	//  _95
+            ENDC	//  _96
+            c4 POP
+            RETALT
+          }>ELSE<{
+            2DROP	// 
+          }>
+        }>
       }>ELSE<{	//  own_data sender op in_msg_body tag
         s3 POP	//  own_data tag op in_msg_body
         s0 s2 XCHG	//  own_data in_msg_body op tag
-        2 EQINT	//  own_data in_msg_body op _94
+        2 EQINT	//  own_data in_msg_body op _100
         IF:<{	//  own_data in_msg_body op
-          187 PUSHINT	//  own_data in_msg_body op _95=187
-          EQUAL	//  own_data in_msg_body _96
-          IFJMP:<{	//  own_data in_msg_body
+          187 PUSHINT	//  own_data in_msg_body op _101=187
+          EQUAL	//  own_data in_msg_body _102
+          IF:<{	//  own_data in_msg_body
             SWAP	//  in_msg_body own_data
             job::ld_working_main INLINECALLDICT	//  in_msg_body poster worker keys
             CTOS	//  in_msg_body poster worker keys
@@ -2533,33 +2539,34 @@ PROGRAM{
             s3 s6 XCHG2	//  au poster worker al tag_a b keys
             parse_proposal_check_sig INLINECALLDICT	//  au poster worker al tag_a tag_b bl bu
             2SWAP	//  au poster worker al bl bu tag_a tag_b
-            EQUAL	//  au poster worker al bl bu _115
+            EQUAL	//  au poster worker al bl bu _121
             200 THROWIF
             -ROT	//  au poster worker bu al bl
             MAX	//  au poster worker bu nton_min
             s4 s4 XCHG2	//  nton_min poster worker au bu
             MIN	//  nton_min poster worker nton_max
             s3 s3 XCPU	//  nton_max poster worker nton_min nton_max
-            GREATER	//  nton_max poster worker _122
+            GREATER	//  nton_max poster worker _128
             200 THROWIF
-            mode::pay_transfer INLINECALLDICT	//  nton_max poster worker _124
+            mode::pay_transfer INLINECALLDICT	//  nton_max poster worker _130
             s0 s1 s3 XCHG3
-            x{4a6f6220636f6d706c6574656421} PUSHSLICE	//  poster _124 worker nton_max _125
+            x{4a6f6220636f6d706c6574656421} PUSHSLICE	//  poster _130 worker nton_max _131
             send_text INLINECALLDICT
-            mode::destroy_into INLINECALLDICT	//  poster _127
+            mode::destroy_into INLINECALLDICT	//  poster _133
             SWAP
             0 PUSHINT
-            x{4a6f622066696e69736865642e} PUSHSLICE	//  _127 poster _128=0 _129
+            x{4a6f622066696e69736865642e} PUSHSLICE	//  _133 poster _134=0 _135
             send_text INLINECALLDICT
             RETALT
-          }>	//  own_data in_msg_body
-          2DROP	// 
+          }>ELSE<{
+            2DROP	// 
+          }>
         }>ELSE<{
           3 BLKDROP	// 
         }>
       }>
     }>
-    16 PUSHPOW2DEC	//  _131=65535
+    16 PUSHPOW2DEC	//  _138=65535
     THROWANY
   }>
   gas::invoke_method PROC:<{
@@ -2655,5 +2662,60 @@ PROGRAM{
     s0 DUMP	//  _3
     DROP	// 
     100 THROW
+  }>
+  check_termination PROC:<{
+    // 
+    1 PUSHINT	//  v=1
+    RETALT	//  _4
+    DROP	// 
+    2 PUSHINT	//  _5=2
+  }>
+  check_termination_conditional PROC:<{
+    //  cond
+    1 PUSHINT	//  cond v=1
+    SWAP	//  v=1 cond
+    IFRETALT	//  _5
+    DROP	// 
+    2 PUSHINT	//  _6=2
+  }>
+  check_termination_inside_if PROC:<{
+    //  cond
+    1 PUSHINT	//  cond v
+    DUP	//  cond v v
+    IF:<{	//  cond v
+      SWAP	//  v cond
+      IFRETALT
+    }>ELSE<{
+      NIP	//  v
+    }>	//  _7
+    DROP	// 
+    2 PUSHINT	//  _8=2
+  }>
+  __test_check_termination PROC:<{
+    // 
+    check_termination CALLDICT	//  _1
+    1 EQINT	//  _3
+    100 THROWIFNOT
+  }>
+  __test_check_termination_cond_true PROC:<{
+    // 
+    1 PUSHINT	//  _1=1
+    check_termination_conditional CALLDICT	//  _2
+    1 EQINT	//  _4
+    100 THROWIFNOT
+  }>
+  __test_check_termination_cond_false PROC:<{
+    // 
+    0 PUSHINT	//  _1=0
+    check_termination_conditional CALLDICT	//  _2
+    2 EQINT	//  _4
+    100 THROWIFNOT
+  }>
+  __test_check_termination_inside_if PROC:<{
+    // 
+    1 PUSHINT	//  _1=1
+    check_termination_inside_if CALLDICT	//  _2
+    1 EQINT	//  _4
+    100 THROWIFNOT
   }>
 }END>c

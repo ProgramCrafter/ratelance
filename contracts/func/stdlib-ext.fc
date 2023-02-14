@@ -20,6 +20,13 @@ int first_bit(slice) asm "SDFIRST";
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; termination primitives not cleaning stack
+
+() terminate()          impure asm "RETALT";
+() terminate_if(int)    impure asm "IFRETALT";
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 forall ADDARGS ->
 () send_to_rbounceable((int, ()) packed_mode, int bounce, slice dest, int value,
                        ADDARGS a, ((builder, ADDARGS) -> builder) m)
