@@ -18,7 +18,7 @@ forall ADDARGS ->
   (int mode, _) = packed_mode;
   
   send_raw_message(begin_cell()
-    .store_uint(0x18, 6)
+    .store_uint(0x10, 6)
     .store_slice(dest)
     .store_coins(value)
     .store_uint(1, 107)
@@ -30,7 +30,7 @@ forall ADDARGS ->
   (int mode, _) = packed_mode;
   
   send_raw_message(begin_cell()
-    .store_uint(0x18, 6)
+    .store_uint(0x10, 6)
     .store_slice(dest)
     .store_coins(value)
     .store_uint(0, 107 + 32)

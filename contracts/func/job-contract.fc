@@ -16,6 +16,33 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+int get_job_state() method_id {
+  return get_data().begin_parse().preload_uint(2);
+}
+slice waiting_message_from() method_id {
+  slice own_data = get_data().begin_parse();
+  own_data~skip_bits(2);
+  return own_data~load_msg_addr();
+}
+cell get_job_description() method_id {
+  return get_data().begin_parse().preload_ref();
+}
+int get_job_value() method_id {
+  slice own_data = get_data().begin_parse();
+  int tag = own_data~load_uint(2);
+  if (tag) { own_data~load_msg_addr(); }
+  own_data~load_msg_addr();
+  return own_data~load_uint(64);
+}
+int get_job_poster() method_id {
+  slice own_data = get_data().begin_parse();
+  int tag = own_data~load_uint(2);
+  if (tag) { own_data~load_msg_addr(); }
+  return own_data~load_msg_addr();
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Incoming messages:
 ;; CUS-1.           poster      [empty]
 ;; CUS-1,2-REV.     poster      op::cancel_job
