@@ -6,7 +6,6 @@
 
 cell         not_activated()       asm "b{}  s>c PUSHREF";
 cell         activated()           asm "b{1} s>c PUSHREF";
-(slice, int) load_u32_quiet(slice) asm "32 PLDUZ";
 
 const slice owner = "EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7"a;
 
@@ -33,7 +32,10 @@ const slice owner = "EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7"a;
     return ();
   }
   
-  int opcode = in_msg~load_u32_quiet();
+  if (in_msg.slice_bits() < 32) {
+    return ();
+  }
+  int opcode = in_msg~load_uint(32);
   
   if (opcode == op::payment_request | 0x80000000) {
     ;; we've successfully received the money!

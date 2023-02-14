@@ -6,8 +6,7 @@
   return v.load_uint(2);
 }
 (slice, int, cell, slice) job::ld_unlocked(slice v) inline_ref {
-  return (v~load_msg_addr(), v~load_uint(64),
-          v~load_ref(), v);
+  return (v~load_msg_addr(), v~load_uint(64), v~load_ref(), v);
 }
 
 ;; CUS-2. Serialized by user. Deserialized by user.
@@ -28,23 +27,24 @@
 ;; CUS-3,4-REV. Serialized by wallet. No deserialization needed.
 
 ;; CUS-5. Sent by user.
-cell job::ld_msg_lock_on(slice v) inline_ref {
-  return v~load_ref();
+(cell, slice) job::ld_msg_lock_on(slice v) inline_ref {
+  return (v~load_ref(), v);
 }
 
 ;; CUS-6.
-builder job::st_msg_collapse(builder v, () add_args) inline_ref {
+builder job::st_msg_collapse(builder v, cell add_args) inline_ref {
   int order_hash = cell_hash(get_data());
   order_hash &= (1 << 160) - 1;
   v~store_uint(op::collapse, 32); v~store_uint(order_hash, 160);
   return v;
 }
-builder job::st_locked(builder v, slice offer, slice poster, int value,
-                       cell desc, slice poster_key) inline_ref {
-  v~store_slice(offer); v~store_slice(poster);
-  v~store_uint(value, 64);
-  v~store_ref(desc); v~store_slice(poster_key);
+builder job::st_locked(builder v, slice offer, slice unlocked) inline_ref {
+  v~store_slice(offer); v~store_slice(unlocked);
   return v;
+}
+(slice, slice, int, cell, slice) job::ld_locked(slice v) inline_ref {
+  return (v~load_msg_addr(), v~load_msg_addr(), v~load_uint(64), 
+          v~load_ref(), v);
 }
 int offer::ld_msg_collapse(slice v) inline_ref {
   return v.preload_uint(160);
@@ -94,10 +94,8 @@ builder offer::st_unlocked(builder v, slice job, slice worker, int stake,
   v~store_uint(short_job_hash, 160);
   return v;
 }
-builder job::st_unlocked(builder v, slice poster, int value, cell desc,
-    slice poster_key) inline_ref {
-  v~store_slice(poster); v~store_uint(value, 64); v~store_ref(desc);
-  v~store_slice(poster_key);
+builder job::st_unlocked(builder v, slice locked_without_offer) inline_ref {
+  v~store_slice(locked_without_offer);
   return v;
 }
 
@@ -113,6 +111,9 @@ builder job::st_working(builder v, slice poster, slice worker, int value,
     .store_slice(ratelance_public_key)
     .end_cell());
   return v;
+}
+(slice, slice, cell) job::ld_working_main(slice v) inline_ref {
+  return (v~load_msg_addr(), v~load_msg_addr(), v.load_nth_ref(2));
 }
 
 ;; CUS-11. Serialized by user.

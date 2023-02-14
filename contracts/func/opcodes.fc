@@ -1,8 +1,11 @@
 ;; ----  Job contract states  --------------------------------------------------
 
-const int state::unlocked        = 0;
-const int state::locked_on_offer = 1;
-const int state::locked_working  = 2;
+const int job::tag::unlocked        = 0;
+const int job::tag::locked_on_offer = 1;
+const int job::tag::locked_working  = 2;
+
+const int offer::tag::unlocked = 0;
+const int offer::tag::locked   = 1;
 
 ;; ----  Offer contract opcodes  -----------------------------------------------
 
@@ -34,8 +37,9 @@ const int TON = 1000 * 1000 * 1000;
 
 const int DEVELOPMENT = 1;
 
-(int, ()) mode::forward_value() { return (64, ()); }
-(int, ()) mode::destroy_into()  { return DEVELOPMENT ? (128, ()) : (160, ()); }
+(int, ()) mode::forward_value() inline_ref { return (64, ()); }
+(int, ()) mode::pay_transfer()  inline_ref { return (1, ()); }
+(int, ()) mode::destroy_into()  inline_ref { return DEVELOPMENT ? (128, ()) : (160, ()); }
 
 ;; ----  Addresses (common)  ---------------------------------------------------
 

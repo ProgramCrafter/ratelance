@@ -1,64 +1,108 @@
 #include "func/stdlib-ext.fc";
 #include "func/opcodes.fc";
+#include "func/tlb.fc";
+
+(int, int, int) parse_proposal_check_sig(slice v, slice keys) impure inline_ref {
+  (int tag, slice sig, int lb, int ub) = job::parse_proposal_with_tag(v);
+  
+  if (tag != 3) {
+    slice key = keys.extract_part(tag * 256, 256);
+    check_data_signature(job::wrap_for_signing(lb, ub),
+                         sig, key.preload_uint(256));
+  }
+  
+  return (tag, lb, ub);
+}
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(int, slice) load_bounced_sender(cell in_msg) {
-  slice in_msg = in_msg.begin_parse();
-  int b = in_msg~load_uint(4) & 1;
-  return (b, in_msg~load_msg_addr());
-}
-
-() process_msg_unlocked(int balance, int msg_value, cell in_msg, slice in_msg_body, slice own_data) impure inline_ref {
-  if (equal_slices(in_msg_body, offer_comment())) { return (); }
-  if (in_msg_body.slice_bits() < 32) { return (); }
-  
-  (int bounced, slice sender) = load_bounced_sender(in_msg);
-  throw_if(err::invariant_failed, bounced);
-  
-  int opcode = in_msg_body~load_uint(32);
-  
-  if (opcode == op::update_job) {
-    (slice poster, slice poster_key, cell old_description, int job_value) =
-      (own_data~load_msg_addr(), own_data~load_bits(256), own_data~load_ref(), own_data~load_coins());
-    
-    throw_unless(err::invalid_sender, equal_slices(poster, sender));
-    throw_unless(err::insufficient_stake, balance * 5 > job_value * 6);
-    throw_unless(err::low_job_value, job_value >= 5 * TON);
-    
-    builder new_data = begin_cell()
-      .store_uint(0, 3)
-      .store_slice(poster)
-      .store_slice(in_msg_body~load_bits(256))
-      .store_ref(in_msg_body~load_ref())
-      .store_coins(in_msg_body~load_coins());
-    
-    if (own_data.first_bit()) {
-      new_data~store_slice(own_data);
-    } else {
-      new_data~store_uint(1, 1);
-      new_data~store_ref(get_data());
-    }
-    
-    set_data(new_data.end_cell());
-  } elseif (opcode == op::lock_on_offer) {
-    
-  }
-}
-
-
+;; Incoming messages:
+;; CUS-1.           poster      [empty]
+;; CUS-1,2-REV.     poster      op::cancel_job
+;; CUS-4.           offer       [insufficient value to even notice it]
+;; CUS-5.           poster      op::lock_on_offer
+;; CUS-9-OK.        offer       op::lock_success
+;; CUS-9-ERR.       offer       op::lock_failed
+;; CUS-12.          anyone      op::finish_job
 
 () recv_internal(int balance, int msg_value, cell in_msg, slice in_msg_body) {
-  slice own_data = get_data().begin_parse();
-  
-  int state = own_data~load_uint(3);
-        if (state == state::unlocked) {
-    process_msg_unlocked(balance, msg_value, in_msg, in_msg_body, own_data);
-  } elseif (state == state::locked_on_offer) {
-    
-  } elseif (state == state::locked_working) {
-    
-  } else {
-    throw(0xFFFF);
+  if (in_msg_body.slice_bits() < 32) {
+    return ();
   }
+  
+  (int bounced, slice sender) = in_msg.load_bounced_sender();
+  if (bounced) {
+    ;; OK, in job contract it is safe to ignore bounced messages
+    return ();
+  }
+  
+  int op = in_msg_body~load_uint(32);
+  
+  slice own_data = get_data().begin_parse();
+  int tag = own_data~load_uint(2);
+  
+  if (tag == job::tag::unlocked) {
+    if (op == op::cancel_job) {
+      throw_unless(200, own_data.starts_with(sender));
+      send_text(mode::destroy_into(), sender, 0, "Job destroyed.");
+      return ();
+    } elseif (op == op::lock_on_offer) {
+      throw_unless(200, own_data.starts_with(sender));
+      
+      (_, slice offer_addr) = job::ld_msg_lock_on(in_msg_body);
+      send_to(mode::forward_value(), offer_addr, 0, null(),
+              job::st_msg_collapse);
+      set_data(begin_cell()
+        .store_uint(job::tag::locked_on_offer, 2)
+        .job::st_locked(offer_addr, own_data)
+        .end_cell());
+      return ();
+    }
+  } elseif (tag == job::tag::locked_on_offer) {
+    if (op == op::lock_success) {
+      ;; throw_unless(200, own_data.starts_with(sender));
+      (slice offer, slice poster, int value, cell poster_desc, slice poster_key)
+        = job::ld_locked(own_data);
+      throw_unless(200, equal_slices(offer, sender));
+      
+      (slice worker, cell worker_desc, slice worker_key)
+        = job::ld_msg_lock_success(in_msg_body);
+      
+      set_data(begin_cell()
+        .store_uint(job::tag::locked_working, 2)
+        .job::st_working(poster, worker, value, poster_desc, worker_desc,
+                         poster_key, worker_key)
+        .end_cell());
+    } elseif (op == op::lock_failed) {
+      ;; throw_unless(200, own_data.starts_with(sender));
+      throw_unless(200, equal_slices(sender, own_data~load_msg_addr()));
+      set_data(begin_cell()
+        .store_uint(job::tag::unlocked, 2)
+        .job::st_unlocked(own_data)
+        .end_cell());
+      return ();
+    }
+  } elseif (tag == job::tag::locked_working) {
+    if (op == op::finish_job) {
+      (slice poster, slice worker, cell keys) = job::ld_working_main(own_data);
+      slice keys = keys.begin_parse();
+      
+      (slice a, slice b) = job::parse_finish_message(in_msg_body);
+      (int tag_a, int al, int au) = parse_proposal_check_sig(a, keys);
+      (int tag_b, int bl, int bu) = parse_proposal_check_sig(b, keys);
+      throw_if(200, tag_a == tag_b);
+      
+      ;; we are not checking sender, as this code is guarded by signatures
+      
+      int nton_min = max(al, bl);
+      int nton_max = min(au, bu);
+      throw_if(200, nton_min > nton_max);
+      
+      send_text(mode::pay_transfer(), worker, nton_max, "Job completed!");
+      send_text(mode::destroy_into(), poster, 0, "Job finished.");
+      return ();
+    }
+  }
+  
+  throw(0xFFFF);
 }

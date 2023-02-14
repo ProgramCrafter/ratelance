@@ -1,5 +1,5 @@
 "Asm.fif" include
-// automatically generated from `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\stdlib.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\1.address_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\bad_messages_generator.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\c5_parse_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\message_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\storage-test-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\tests-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\token-helpers.func` `D:\TON_FunC\ratelance\contracts\func\job-contract.fc` incl:`func/stdlib-ext.fc` incl:`func/opcodes.fc` `D:\TON_FunC\ratelance\contracts\tests\tests-job.fc` 
+// automatically generated from `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\error_codes.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\math.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\func-libs\stdlib.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\1.address_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\bad_messages_generator.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\c5_parse_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\message_helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\storage-test-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\tests-helpers.func` `C:\Users\Tigr\AppData\Local\toncli\toncli\test-libs\token-helpers.func` `D:\TON_FunC\ratelance\contracts\func\job-contract.fc` incl:`func/stdlib-ext.fc` incl:`func/opcodes.fc` incl:`func/tlb.fc` `D:\TON_FunC\ratelance\contracts\tests\tests-job.fc` 
 PROGRAM{
   DECLPROC power
   DECLPROC sqrt
@@ -62,10 +62,35 @@ PROGRAM{
   DECLPROC snake_concat_tagged
   DECLPROC snake_equal?
   DECLPROC send_to
-  DECLPROC mode::forward_value
-  DECLPROC mode::destroy_into
+  DECLPROC send_text
   DECLPROC load_bounced_sender
-  DECLPROC process_msg_unlocked
+  DECLPROC mode::forward_value
+  DECLPROC mode::pay_transfer
+  DECLPROC mode::destroy_into
+  DECLPROC job::ld_tag
+  DECLPROC job::ld_unlocked
+  DECLPROC offer::ld_tag
+  DECLPROC offer::ld_unlocked
+  DECLPROC job::ld_msg_lock_on
+  DECLPROC job::st_msg_collapse
+  DECLPROC job::st_locked
+  DECLPROC job::ld_locked
+  DECLPROC offer::ld_msg_collapse
+  DECLPROC offer::st_msg_take_stake
+  DECLPROC offer::st_locked
+  DECLPROC offer::ld_locked
+  DECLPROC offer::st_msg_unplug
+  DECLPROC offer::st_msg_lock_success
+  DECLPROC job::ld_msg_lock_success
+  DECLPROC offer::st_msg_lock_failed
+  DECLPROC offer::st_unlocked
+  DECLPROC job::st_unlocked
+  DECLPROC job::st_working
+  DECLPROC job::ld_working_main
+  DECLPROC job::wrap_for_signing
+  DECLPROC job::parse_proposal_with_tag
+  DECLPROC job::parse_finish_message
+  DECLPROC parse_proposal_check_sig
   DECLPROC recv_internal
   91872 DECLMETHOD gas::invoke_method
   99215 DECLMETHOD invoke_gas
@@ -2015,28 +2040,39 @@ PROGRAM{
     -ROT	//  mode dest value _7 a m
     2 1 CALLXARGS	//  mode dest value _8
     ENDC	//  mode dest value _9
-    0 PUSHINT	//  mode dest value _9 _10=0
-    24 PUSHINT	//  mode dest value _9 _10=0 _11=24
-    NEWC	//  mode dest value _9 _10=0 _11=24 _12
-    6 STU	//  mode dest value _9 _10=0 _14
-    s0 s4 XCHG2	//  mode _10=0 value _9 _14 dest
-    STSLICER	//  mode _10=0 value _9 _15
-    ROT	//  mode _10=0 _9 _15 value
-    STVARUINT16	//  mode _10=0 _9 _16
-    s1 s2 XCHG	//  mode _9 _10=0 _16
+    1 PUSHINT	//  mode dest value _9 _10=1
+    24 PUSHINT	//  mode dest value _9 _10=1 _11=24
+    NEWC	//  mode dest value _9 _10=1 _11=24 _12
+    6 STU	//  mode dest value _9 _10=1 _14
+    s0 s4 XCHG2	//  mode _10=1 value _9 _14 dest
+    STSLICER	//  mode _10=1 value _9 _15
+    ROT	//  mode _10=1 _9 _15 value
+    STVARUINT16	//  mode _10=1 _9 _16
+    s1 s2 XCHG	//  mode _9 _10=1 _16
     107 STU	//  mode _9 _18
     STREF	//  mode _19
     ENDC	//  mode _20
     SWAP	//  _20 mode
     SENDRAWMSG
   }>
-  mode::forward_value PROC:<{
-    // 
-    64 PUSHINT	//  _0=64
-  }>
-  mode::destroy_into PROC:<{
-    // 
-    7 PUSHPOW2	//  _1=128
+  send_text PROCREF:<{
+    //  packed_mode dest value body
+    //  mode dest value body
+    0 PUSHINT	//  mode dest value body _6=0
+    24 PUSHINT	//  mode dest value body _6=0 _7=24
+    NEWC	//  mode dest value body _6=0 _7=24 _8
+    6 STU	//  mode dest value body _6=0 _10
+    s0 s4 XCHG2	//  mode _6=0 value body _10 dest
+    STSLICER	//  mode _6=0 value body _11
+    ROT	//  mode _6=0 body _11 value
+    STVARUINT16	//  mode _6=0 body _12
+    s1 s2 XCHG	//  mode body _6=0 _12
+    139 STU	//  mode body _16
+    SWAP	//  mode _16 body
+    STSLICER	//  mode _17
+    ENDC	//  mode _18
+    SWAP	//  _18 mode
+    SENDRAWMSG
   }>
   load_bounced_sender PROC:<{
     //  in_msg
@@ -2049,116 +2085,404 @@ PROGRAM{
     LDMSGADDR	//  b _14 _13
     DROP	//  b _9
   }>
-  process_msg_unlocked PROCREF:<{
-    //  balance msg_value in_msg in_msg_body own_data
-    s3 POP	//  balance own_data in_msg in_msg_body
-    x{00000000} x{6F66666572} |+ PUSHSLICE	//  balance own_data in_msg in_msg_body _5
-    s1 s(-1) PUXC	//  balance own_data in_msg in_msg_body in_msg_body _5
-    SDEQ	//  balance own_data in_msg in_msg_body _6
-    IFJMP:<{	//  balance own_data in_msg in_msg_body
-      4 BLKDROP	// 
-    }>	//  balance own_data in_msg in_msg_body
-    DUP	//  balance own_data in_msg in_msg_body in_msg_body
-    SBITS	//  balance own_data in_msg in_msg_body _7
-    32 LESSINT	//  balance own_data in_msg in_msg_body _9
-    IFJMP:<{	//  balance own_data in_msg in_msg_body
-      4 BLKDROP	// 
-    }>	//  balance own_data in_msg in_msg_body
-    SWAP	//  balance own_data in_msg_body in_msg
-    load_bounced_sender CALLDICT	//  balance own_data in_msg_body bounced sender
-    SWAP	//  balance own_data in_msg_body sender bounced
-    172 THROWIF
-    SWAP	//  balance own_data sender in_msg_body
-    32 LDU	//  balance own_data sender opcode in_msg_body
-    OVER
-    168 PUSHINT	//  balance own_data sender opcode in_msg_body opcode _19=168
-    EQUAL	//  balance own_data sender opcode in_msg_body _20
-    IF:<{	//  balance own_data sender opcode in_msg_body
-      NIP	//  balance own_data sender in_msg_body
-      s0 s2 XCHG	//  balance in_msg_body sender own_data
-      LDMSGADDR	//  balance in_msg_body sender _25 own_data
-      256 LDSLICE	//  balance in_msg_body sender _25 _87 _86
-      NIP	//  balance in_msg_body sender _25 own_data
-      LDREF	//  balance in_msg_body sender _25 _89 _88
-      NIP	//  balance in_msg_body sender _25 own_data
-      LDVARUINT16	//  balance in_msg_body sender poster job_value own_data
-      s2 s3 PUXC	//  balance in_msg_body own_data poster job_value poster sender
-      SDEQ	//  balance in_msg_body own_data poster job_value _35
-      171 THROWIFNOT
-      s0 s4 XCHG	//  job_value in_msg_body own_data poster balance
-      5 MULCONST	//  job_value in_msg_body own_data poster _39
-      s4 PUSH	//  job_value in_msg_body own_data poster _39 job_value
-      6 MULCONST	//  job_value in_msg_body own_data poster _39 _41
-      GREATER	//  job_value in_msg_body own_data poster _42
-      179 THROWIFNOT
-      s0 s3 XCHG
-      5000000000 PUSHINT	//  poster in_msg_body own_data job_value _47
-      GEQ	//  poster in_msg_body own_data _48
-      127 THROWIFNOT
-      SWAP	//  poster own_data in_msg_body
-      LDREF	//  poster own_data _51 in_msg_body
-      0 PUSHINT	//  poster own_data _51 in_msg_body _53=0
-      NEWC	//  poster own_data _51 in_msg_body _53=0 _54
-      3 STU	//  poster own_data _51 in_msg_body _56
-      s0 s4 XCHG2	//  in_msg_body own_data _51 _56 poster
-      STSLICER	//  in_msg_body own_data _51 _57
-      s0 s3 XCHG	//  _57 own_data _51 in_msg_body
-      256 LDSLICE	//  _57 own_data _51 _58 in_msg_body
-      s4 s4 XCHG2	//  in_msg_body own_data _51 _57 _58
-      STSLICER	//  in_msg_body own_data _51 _61
-      STREF	//  in_msg_body own_data _62
-      s0 s2 XCHG	//  _62 own_data in_msg_body
-      LDVARUINT16	//  _62 own_data _97 _96
-      DROP	//  _62 own_data _63
-      s1 s2 XCHG	//  own_data _62 _63
-      STVARUINT16	//  own_data new_data
-      OVER	//  own_data new_data own_data
-      SDFIRST	//  own_data new_data _66
-      IF:<{	//  own_data new_data
-        SWAP	//  new_data own_data
-        STSLICER	//  new_data
-      }>ELSE<{	//  own_data new_data
-        1 PUSHINT
-        s2 POP	//  _70=1 new_data
-        1 STU	//  new_data
-        c4 PUSH	//  new_data _74
-        STREFR	//  new_data
-      }>
-      ENDC	//  _76
-      c4 POP
-    }>ELSE<{	//  balance own_data sender opcode in_msg_body
-      s1 s4 XCHG
-      4 BLKDROP	//  opcode
-      172 PUSHINT	//  opcode _78=172
-      EQUAL	//  _79
-      DROP	// 
-    }>
+  mode::forward_value PROCREF:<{
+    // 
+    64 PUSHINT	//  _0=64
+  }>
+  mode::pay_transfer PROCREF:<{
+    // 
+    1 PUSHINT	//  _0=1
+  }>
+  mode::destroy_into PROCREF:<{
+    // 
+    7 PUSHPOW2	//  _1=128
+  }>
+  job::ld_tag PROCREF:<{
+    //  v
+    2 LDU	//  _4 _3
+    SWAP	//  _3 _4
+  }>
+  job::ld_unlocked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    64 LDU	//  _1 _3 v
+    LDREF	//  _1 _3 _6 v
+  }>
+  offer::ld_tag PROCREF:<{
+    //  v
+    2 LDU	//  _4 _3
+    SWAP	//  _3 _4
+  }>
+  offer::ld_unlocked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    64 LDU	//  _1 _3 _5 v
+    LDREF	//  _1 _3 _5 _8 v
+    256 LDSLICE	//  _1 _3 _5 _8 _10 v
+  }>
+  job::ld_msg_lock_on PROCREF:<{
+    //  v
+    LDREF	//  _1 v
+  }>
+  job::st_msg_collapse PROCREF:<{
+    //  v add_args
+    DROP	//  v
+    c4 PUSH	//  v _3
+    HASHCU	//  v order_hash
+    160 PUSHPOW2DEC	//  v order_hash _9
+    AND	//  v order_hash
+    177 PUSHINT
+    ROT	//  order_hash _12=177 v
+    32 STU	//  order_hash v
+    160 STU	//  v
+  }>
+  job::st_locked PROCREF:<{
+    //  v offer unlocked
+    -ROT	//  unlocked v offer
+    STSLICER	//  unlocked v
+    SWAP	//  v unlocked
+    STSLICER	//  v
+  }>
+  job::ld_locked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    64 LDU	//  _1 _3 _5 v
+    LDREF	//  _1 _3 _5 _8 v
+  }>
+  offer::ld_msg_collapse PROCREF:<{
+    //  v
+    160 PLDU	//  _2
+  }>
+  offer::st_msg_take_stake PROCREF:<{
+    //  v stake
+    1886156135 PUSHINT
+    ROT	//  stake _3=1886156135 v
+    32 STU	//  stake v
+    LTIME	//  stake v _7
+    SWAP	//  stake _7 v
+    64 STU	//  stake v
+    STGRAMS	//  v
+    0 PUSHINT	//  v _13=0
+    SWAP	//  _13=0 v
+    1 STU	//  v
+  }>
+  offer::st_locked PROCREF:<{
+    //  v unlocked
+    STSLICER	//  v
+  }>
+  offer::ld_locked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    64 LDU	//  _1 _3 _5 v
+    LDREF	//  _1 _3 _5 _8 v
+    256 LDSLICE	//  _1 _3 _5 _8 _10 v
+  }>
+  offer::st_msg_unplug PROCREF:<{
+    //  v
+    1685288050 PUSHINT	//  v _3=1685288050
+    SWAP	//  _3=1685288050 v
+    32 STU	//  v
+    LTIME	//  v _7
+    SWAP	//  _7 v
+    64 STU	//  v
+  }>
+  offer::st_msg_lock_success PROCREF:<{
+    //  v add_args add_args add_args
+    //  v worker desc worker_key
+    173 PUSHINT	//  v worker desc worker_key _6=173
+    s0 s4 XCHG2	//  worker_key worker desc _6=173 v
+    32 STU	//  worker_key worker desc v
+    ROT	//  worker_key desc v worker
+    STSLICER	//  worker_key desc v
+    SWAP	//  worker_key v desc
+    STREFR	//  worker_key v
+    SWAP	//  v worker_key
+    STSLICER	//  v
+  }>
+  job::ld_msg_lock_success PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDREF	//  _1 _3 v
+  }>
+  offer::st_msg_lock_failed PROCREF:<{
+    //  v
+    212 PUSHINT	//  v _3=212
+    SWAP	//  _3=212 v
+    32 STU	//  v
+  }>
+  offer::st_unlocked PROCREF:<{
+    //  v job worker stake desc worker_key short_job_hash
+    s6 s5 XCHG2	//  worker_key short_job_hash worker stake desc v job
+    STSLICER	//  worker_key short_job_hash worker stake desc v
+    s0 s3 XCHG2	//  worker_key short_job_hash desc stake v worker
+    STSLICER	//  worker_key short_job_hash desc stake v
+    64 STU	//  worker_key short_job_hash desc v
+    SWAP	//  worker_key short_job_hash v desc
+    STREFR	//  worker_key short_job_hash v
+    ROT	//  short_job_hash v worker_key
+    STSLICER	//  short_job_hash v
+    160 STU	//  v
+  }>
+  job::st_unlocked PROCREF:<{
+    //  v locked_without_offer
+    STSLICER	//  v
+  }>
+  job::st_working PROCREF:<{
+    //  v poster worker value poster_desc worker_desc poster_key worker_key
+    s7 s6 XCHG2	//  poster_key worker_key worker value poster_desc worker_desc v poster
+    STSLICER	//  poster_key worker_key worker value poster_desc worker_desc v
+    s0 s4 XCHG2	//  poster_key worker_key worker_desc value poster_desc v worker
+    STSLICER	//  poster_key worker_key worker_desc value poster_desc v
+    s1 s2 XCHG	//  poster_key worker_key worker_desc poster_desc value v
+    64 STU	//  poster_key worker_key worker_desc poster_desc v
+    SWAP	//  poster_key worker_key worker_desc v poster_desc
+    STREFR	//  poster_key worker_key worker_desc v
+    SWAP	//  poster_key worker_key v worker_desc
+    STREFR	//  poster_key worker_key v
+    NEWC	//  poster_key worker_key v _20
+    s0 s3 XCHG2	//  v worker_key _20 poster_key
+    STSLICER	//  v worker_key _21
+    SWAP	//  v _21 worker_key
+    STSLICER	//  v _22
+    x{233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB} PUSHSLICE	//  v _22 _23
+    STSLICER	//  v _24
+    ENDC	//  v _25
+    STREFR	//  v
+  }>
+  job::ld_working_main PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    2 PUSHINT	//  _1 _3 v _5=2
+    PLDREFVAR	//  _1 _3 _6
+  }>
+  job::wrap_for_signing PROCREF:<{
+    //  worker_ton_min worker_ton_max
+    NEWC	//  worker_ton_min worker_ton_max _2
+    x{FFFF726C3A3A6A6F623A3A7630} PUSHSLICE	//  worker_ton_min worker_ton_max _2 _3
+    STSLICER	//  worker_ton_min worker_ton_max _4
+    s1 s2 XCHG	//  worker_ton_max worker_ton_min _4
+    64 STU	//  worker_ton_max _6
+    64 STU	//  _8
+    ENDC	//  _9
+    CTOS	//  _10
+  }>
+  job::parse_proposal_with_tag PROCREF:<{
+    //  v
+    2 LDU	//  tag v
+    OVER	//  tag v tag
+    3 EQINT	//  tag v _6
+    IFJMP:<{	//  tag v
+      2DROP	// 
+      1652841508 PUSHINT	//  _8=1652841508
+      CONFIGOPTPARAM	//  c
+      DUP	//  c c
+      ISNULL	//  c _11
+      200 THROWIF
+      MYADDR	//  c _14
+      SWAP
+      267 PUSHINT	//  _14 c _15=267
+      DICTGET
+      NULLSWAPIFNOT	//  v success
+      200 THROWIFNOT
+      3 PUSHINT	//  v _19=3
+      PUSHNULL	//  v _19=3 _20
+      s0 s2 XCHG	//  _20 _19=3 v
+      64 LDU	//  _20 _19=3 _21 v
+      64 LDU	//  _20 _19=3 _21 _43 _42
+      DROP	//  _20 _19=3 _21 _24
+      s2 s3 XCHG	//  _19=3 _20 _21 _24
+    }>	//  tag v
+    9 PUSHPOW2	//  tag v _28=512
+    LDSLICEX	//  tag _27 v
+    64 LDU	//  tag _27 _30 v
+    64 LDU	//  tag _27 _30 _49 _48
+    DROP	//  tag _27 _30 _33
+  }>
+  job::parse_finish_message PROCREF:<{
+    //  v
+    LDREF	//  _1 v
+    SWAP	//  v _1
+    CTOS	//  v _3
+    SWAP	//  _3 v
+    PLDREF	//  _3 _4
+    CTOS	//  _3 _5
+  }>
+  parse_proposal_check_sig PROCREF:<{
+    //  v keys
+    DROP	//  v
+    job::parse_proposal_with_tag INLINECALLDICT	//  _18 _19 _20 _21
+    s2 POP	//  tag ub lb
+    s2 PUSH	//  tag ub lb tag
+    3 NEQINT	//  tag ub lb _8
+    IF:<{	//  tag ub lb
+    }>	//  tag ub lb
+    SWAP	//  tag lb ub
   }>
   recv_internal PROC:<{
-    //  balance msg_value in_msg in_msg_body
-    c4 PUSH	//  balance msg_value in_msg in_msg_body _5
-    CTOS	//  balance msg_value in_msg in_msg_body own_data
-    3 LDU	//  balance msg_value in_msg in_msg_body state own_data
-    OVER	//  balance msg_value in_msg in_msg_body state own_data state
-    0 EQINT	//  balance msg_value in_msg in_msg_body state own_data _12
-    IF:<{	//  balance msg_value in_msg in_msg_body state own_data
-      NIP	//  balance msg_value in_msg in_msg_body own_data
-      process_msg_unlocked INLINECALLDICT
-    }>ELSE<{	//  balance msg_value in_msg in_msg_body state own_data
-      s1 s5 XCHG
-      5 BLKDROP	//  state
-      DUP	//  state state
-      1 EQINT	//  state _15
-      IFNOT:<{	//  state
-        2 EQINT	//  _17
-        IFNOT:<{	// 
-          16 PUSHPOW2DEC	//  _18=65535
-          THROWANY
-        }>	// 
-      }>ELSE<{
-        DROP	// 
+    SAMEALTSAVE	//  balance msg_value in_msg in_msg_body
+    2 2 BLKDROP2	//  in_msg in_msg_body
+    DUP	//  in_msg in_msg_body in_msg_body
+    SBITS	//  in_msg in_msg_body _4
+    32 LESSINT	//  in_msg in_msg_body _6
+    IFJMP:<{	//  in_msg in_msg_body
+      2DROP	// 
+    }>	//  in_msg in_msg_body
+    SWAP	//  in_msg_body in_msg
+    load_bounced_sender CALLDICT	//  in_msg_body bounced sender
+    SWAP	//  in_msg_body sender bounced
+    IFJMP:<{	//  in_msg_body sender
+      2DROP	// 
+    }>	//  in_msg_body sender
+    SWAP	//  sender in_msg_body
+    32 LDU	//  sender op in_msg_body
+    c4 PUSH	//  sender op in_msg_body _15
+    CTOS	//  sender op in_msg_body own_data
+    2 LDU	//  sender op in_msg_body tag own_data
+    OVER	//  sender op in_msg_body tag own_data tag
+    0 EQINT	//  sender op in_msg_body tag own_data _22
+    IF:<{	//  sender op in_msg_body tag own_data
+      NIP	//  sender op in_msg_body own_data
+      s2 PUSH
+      235 PUSHINT	//  sender op in_msg_body own_data op _23=235
+      EQUAL	//  sender op in_msg_body own_data _24
+      IFJMP:<{	//  sender op in_msg_body own_data
+        2 1 BLKDROP2	//  sender own_data
+        OVER	//  sender own_data sender
+        SDPFXREV	//  sender _26
+        200 THROWIFNOT
+        mode::destroy_into INLINECALLDICT	//  sender _28
+        SWAP
+        0 PUSHINT
+        x{4a6f622064657374726f7965642e} PUSHSLICE	//  _28 sender _29=0 _30
+        send_text INLINECALLDICT
+        RETALT
+      }>	//  sender op in_msg_body own_data
+      s0 s2 XCHG
+      172 PUSHINT	//  sender own_data in_msg_body op _32=172
+      EQUAL	//  sender own_data in_msg_body _33
+      IFJMP:<{	//  sender own_data in_msg_body
+        s1 s2 PUXC	//  in_msg_body own_data own_data sender
+        SDPFXREV	//  in_msg_body own_data _35
+        200 THROWIFNOT
+        SWAP	//  own_data in_msg_body
+        job::ld_msg_lock_on INLINECALLDICT	//  own_data _136 _137
+        NIP	//  own_data offer_addr
+        mode::forward_value INLINECALLDICT	//  own_data offer_addr _40
+        0 PUSHINT	//  own_data offer_addr _40 _41=0
+        PUSHNULL	//  own_data offer_addr _40 _41=0 _42
+        CONT:<{
+          job::st_msg_collapse CALLDICT
+        }>	//  own_data offer_addr _40 _41=0 _42 _43
+        s4 PUSH
+        3 -ROLL	//  own_data offer_addr _40 offer_addr _41=0 _42 _43
+        send_to INLINECALLDICT
+        1 PUSHINT	//  own_data offer_addr _45=1
+        NEWC	//  own_data offer_addr _45=1 _46
+        2 STU	//  own_data offer_addr _48
+        s0 s2 XCHG	//  _48 offer_addr own_data
+        job::st_locked INLINECALLDICT	//  _49
+        ENDC	//  _50
+        c4 POP
+        RETALT
+      }>	//  sender own_data in_msg_body
+      3 BLKDROP	// 
+    }>ELSE<{	//  sender op in_msg_body tag own_data
+      OVER	//  sender op in_msg_body tag own_data tag
+      1 EQINT	//  sender op in_msg_body tag own_data _53
+      IF:<{	//  sender op in_msg_body tag own_data
+        NIP	//  sender op in_msg_body own_data
+        s2 PUSH
+        173 PUSHINT	//  sender op in_msg_body own_data op _54=173
+        EQUAL	//  sender op in_msg_body own_data _55
+        IF:<{	//  sender op in_msg_body own_data
+          1 2 BLKDROP2	//  sender in_msg_body own_data
+          job::ld_locked INLINECALLDICT	//  sender in_msg_body offer poster value poster_desc poster_key
+          s4 s6 XCHG2	//  poster_key in_msg_body poster_desc poster value offer sender
+          SDEQ	//  poster_key in_msg_body poster_desc poster value _63
+          200 THROWIFNOT
+          s0 s3 XCHG	//  poster_key value poster_desc poster in_msg_body
+          job::ld_msg_lock_success INLINECALLDICT	//  poster_key value poster_desc poster worker worker_desc worker_key
+          2 PUSHINT	//  poster_key value poster_desc poster worker worker_desc worker_key _69=2
+          NEWC	//  poster_key value poster_desc poster worker worker_desc worker_key _69=2 _70
+          2 STU	//  poster_key value poster_desc poster worker worker_desc worker_key _72
+          s0 s7 XCHG
+          s4 s6 XCHG
+          s3 s5 XCHG
+          SWAP	//  _72 poster worker value poster_desc worker_desc poster_key worker_key
+          job::st_working INLINECALLDICT	//  _73
+          ENDC	//  _74
+          c4 POP
+        }>ELSE<{	//  sender op in_msg_body own_data
+          NIP	//  sender op own_data
+          SWAP
+          212 PUSHINT	//  sender own_data op _76=212
+          EQUAL	//  sender own_data _77
+          IFJMP:<{	//  sender own_data
+            LDMSGADDR	//  sender _79 own_data
+            -ROT	//  own_data sender _79
+            SDEQ	//  own_data _81
+            200 THROWIFNOT
+            0 PUSHINT	//  own_data _83=0
+            NEWC	//  own_data _83=0 _84
+            2 STU	//  own_data _86
+            SWAP	//  _86 own_data
+            job::st_unlocked INLINECALLDICT	//  _87
+            ENDC	//  _88
+            c4 POP
+            RETALT
+          }>	//  sender own_data
+          2DROP	// 
+        }>
+      }>ELSE<{	//  sender op in_msg_body tag own_data
+        s4 POP	//  own_data op in_msg_body tag
+        2 EQINT	//  own_data op in_msg_body _91
+        IF:<{	//  own_data op in_msg_body
+          SWAP
+          187 PUSHINT	//  own_data in_msg_body op _92=187
+          EQUAL	//  own_data in_msg_body _93
+          IFJMP:<{	//  own_data in_msg_body
+            SWAP	//  in_msg_body own_data
+            job::ld_working_main INLINECALLDICT	//  in_msg_body poster worker keys
+            CTOS	//  in_msg_body poster worker keys
+            s0 s3 XCHG	//  keys poster worker in_msg_body
+            job::parse_finish_message INLINECALLDICT	//  keys poster worker a b
+            s1 s4 XCPU	//  keys poster worker b a keys
+            parse_proposal_check_sig INLINECALLDICT	//  keys poster worker b tag_a al au
+            s3 s6 XCHG2	//  au poster worker al tag_a b keys
+            parse_proposal_check_sig INLINECALLDICT	//  au poster worker al tag_a tag_b bl bu
+            2SWAP	//  au poster worker al bl bu tag_a tag_b
+            EQUAL	//  au poster worker al bl bu _112
+            200 THROWIF
+            -ROT	//  au poster worker bu al bl
+            MAX	//  au poster worker bu nton_min
+            s4 s4 XCHG2	//  nton_min poster worker au bu
+            MIN	//  nton_min poster worker nton_max
+            s3 s3 XCPU	//  nton_max poster worker nton_min nton_max
+            GREATER	//  nton_max poster worker _119
+            200 THROWIF
+            mode::pay_transfer INLINECALLDICT	//  nton_max poster worker _121
+            s0 s1 s3 XCHG3
+            x{4a6f6220636f6d706c6574656421} PUSHSLICE	//  poster _121 worker nton_max _122
+            send_text INLINECALLDICT
+            mode::destroy_into INLINECALLDICT	//  poster _124
+            SWAP
+            0 PUSHINT
+            x{4a6f622066696e69736865642e} PUSHSLICE	//  _124 poster _125=0 _126
+            send_text INLINECALLDICT
+            RETALT
+          }>	//  own_data in_msg_body
+          2DROP	// 
+        }>ELSE<{
+          3 BLKDROP	// 
+        }>
       }>
     }>
+    16 PUSHPOW2DEC	//  _128=65535
+    THROWANY
   }>
   gas::invoke_method PROC:<{
     //  fun args

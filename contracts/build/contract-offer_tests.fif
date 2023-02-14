@@ -62,7 +62,10 @@ PROGRAM{
   DECLPROC snake_concat_tagged
   DECLPROC snake_equal?
   DECLPROC send_to
+  DECLPROC send_text
+  DECLPROC load_bounced_sender
   DECLPROC mode::forward_value
+  DECLPROC mode::pay_transfer
   DECLPROC mode::destroy_into
   DECLPROC job::ld_tag
   DECLPROC job::ld_unlocked
@@ -71,6 +74,7 @@ PROGRAM{
   DECLPROC job::ld_msg_lock_on
   DECLPROC job::st_msg_collapse
   DECLPROC job::st_locked
+  DECLPROC job::ld_locked
   DECLPROC offer::ld_msg_collapse
   DECLPROC offer::st_msg_take_stake
   DECLPROC offer::st_locked
@@ -82,6 +86,7 @@ PROGRAM{
   DECLPROC offer::st_unlocked
   DECLPROC job::st_unlocked
   DECLPROC job::st_working
+  DECLPROC job::ld_working_main
   DECLPROC job::wrap_for_signing
   DECLPROC job::parse_proposal_with_tag
   DECLPROC job::parse_finish_message
@@ -2039,26 +2044,60 @@ PROGRAM{
     -ROT	//  mode dest value _7 a m
     2 1 CALLXARGS	//  mode dest value _8
     ENDC	//  mode dest value _9
-    0 PUSHINT	//  mode dest value _9 _10=0
-    24 PUSHINT	//  mode dest value _9 _10=0 _11=24
-    NEWC	//  mode dest value _9 _10=0 _11=24 _12
-    6 STU	//  mode dest value _9 _10=0 _14
-    s0 s4 XCHG2	//  mode _10=0 value _9 _14 dest
-    STSLICER	//  mode _10=0 value _9 _15
-    ROT	//  mode _10=0 _9 _15 value
-    STVARUINT16	//  mode _10=0 _9 _16
-    s1 s2 XCHG	//  mode _9 _10=0 _16
+    1 PUSHINT	//  mode dest value _9 _10=1
+    24 PUSHINT	//  mode dest value _9 _10=1 _11=24
+    NEWC	//  mode dest value _9 _10=1 _11=24 _12
+    6 STU	//  mode dest value _9 _10=1 _14
+    s0 s4 XCHG2	//  mode _10=1 value _9 _14 dest
+    STSLICER	//  mode _10=1 value _9 _15
+    ROT	//  mode _10=1 _9 _15 value
+    STVARUINT16	//  mode _10=1 _9 _16
+    s1 s2 XCHG	//  mode _9 _10=1 _16
     107 STU	//  mode _9 _18
     STREF	//  mode _19
     ENDC	//  mode _20
     SWAP	//  _20 mode
     SENDRAWMSG
   }>
-  mode::forward_value PROC:<{
+  send_text PROCREF:<{
+    //  packed_mode dest value body
+    //  mode dest value body
+    0 PUSHINT	//  mode dest value body _6=0
+    24 PUSHINT	//  mode dest value body _6=0 _7=24
+    NEWC	//  mode dest value body _6=0 _7=24 _8
+    6 STU	//  mode dest value body _6=0 _10
+    s0 s4 XCHG2	//  mode _6=0 value body _10 dest
+    STSLICER	//  mode _6=0 value body _11
+    ROT	//  mode _6=0 body _11 value
+    STVARUINT16	//  mode _6=0 body _12
+    s1 s2 XCHG	//  mode body _6=0 _12
+    139 STU	//  mode body _16
+    SWAP	//  mode _16 body
+    STSLICER	//  mode _17
+    ENDC	//  mode _18
+    SWAP	//  _18 mode
+    SENDRAWMSG
+  }>
+  load_bounced_sender PROC:<{
+    //  in_msg
+    CTOS	//  in_msg
+    4 LDU	//  _4 in_msg
+    SWAP
+    1 PUSHINT	//  in_msg _4 _7=1
+    AND	//  in_msg b
+    SWAP	//  b in_msg
+    LDMSGADDR	//  b _14 _13
+    DROP	//  b _9
+  }>
+  mode::forward_value PROCREF:<{
     // 
     64 PUSHINT	//  _0=64
   }>
-  mode::destroy_into PROC:<{
+  mode::pay_transfer PROCREF:<{
+    // 
+    1 PUSHINT	//  _0=1
+  }>
+  mode::destroy_into PROCREF:<{
     // 
     7 PUSHPOW2	//  _1=128
   }>
@@ -2088,11 +2127,11 @@ PROGRAM{
   }>
   job::ld_msg_lock_on PROCREF:<{
     //  v
-    LDREF	//  _4 _3
-    DROP	//  _1
+    LDREF	//  _1 v
   }>
   job::st_msg_collapse PROCREF:<{
-    //  v
+    //  v add_args
+    DROP	//  v
     c4 PUSH	//  v _3
     HASHCU	//  v order_hash
     160 PUSHPOW2DEC	//  v order_hash _9
@@ -2103,16 +2142,18 @@ PROGRAM{
     160 STU	//  v
   }>
   job::st_locked PROCREF:<{
-    //  v offer poster value desc poster_key
-    s5 s4 XCHG2	//  desc poster_key poster value v offer
-    STSLICER	//  desc poster_key poster value v
-    ROT	//  desc poster_key value v poster
-    STSLICER	//  desc poster_key value v
-    64 STU	//  desc poster_key v
-    ROT	//  poster_key v desc
-    STREFR	//  poster_key v
-    SWAP	//  v poster_key
+    //  v offer unlocked
+    -ROT	//  unlocked v offer
+    STSLICER	//  unlocked v
+    SWAP	//  v unlocked
     STSLICER	//  v
+  }>
+  job::ld_locked PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    64 LDU	//  _1 _3 _5 v
+    LDREF	//  _1 _3 _5 _8 v
   }>
   offer::ld_msg_collapse PROCREF:<{
     //  v
@@ -2190,13 +2231,7 @@ PROGRAM{
     160 STU	//  v
   }>
   job::st_unlocked PROCREF:<{
-    //  v poster value desc poster_key
-    s4 s3 XCHG2	//  desc poster_key value v poster
-    STSLICER	//  desc poster_key value v
-    64 STU	//  desc poster_key v
-    ROT	//  poster_key v desc
-    STREFR	//  poster_key v
-    SWAP	//  v poster_key
+    //  v locked_without_offer
     STSLICER	//  v
   }>
   job::st_working PROCREF:<{
@@ -2220,6 +2255,13 @@ PROGRAM{
     STSLICER	//  v _24
     ENDC	//  v _25
     STREFR	//  v
+  }>
+  job::ld_working_main PROCREF:<{
+    //  v
+    LDMSGADDR	//  _1 v
+    LDMSGADDR	//  _1 _3 v
+    2 PUSHINT	//  _1 _3 v _5=2
+    PLDREFVAR	//  _1 _3 _6
   }>
   job::wrap_for_signing PROCREF:<{
     //  worker_ton_min worker_ton_max
@@ -2282,7 +2324,7 @@ PROGRAM{
     2 PUSHINT	//  in_msg in_msg_full _5 _8=2
     AND	//  in_msg in_msg_full bounceable
     SWAP	//  in_msg bounceable in_msg_full
-    LDMSGADDR	//  in_msg bounceable _106 _105
+    LDMSGADDR	//  in_msg bounceable _110 _109
     DROP	//  in_msg bounceable sender
     x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  in_msg bounceable sender _13
     SDEQ	//  in_msg bounceable _14
@@ -2304,60 +2346,66 @@ PROGRAM{
       }>
     }>	//  in_msg bounceable
     DROP	//  in_msg
-    32 PLDUZ	//  _107 _108
-    NIP	//  opcode
+    DUP	//  in_msg in_msg
+    SBITS	//  in_msg _33
+    32 LESSINT	//  in_msg _35
+    IFJMP:<{	//  in_msg
+      DROP	// 
+    }>	//  in_msg
+    32 LDU	//  _112 _111
+    DROP	//  opcode
     DUP
-    4033639783 PUSHINT	//  opcode opcode _38
-    EQUAL	//  opcode _39
+    4033639783 PUSHINT	//  opcode opcode _42
+    EQUAL	//  opcode _43
     IF:<{	//  opcode
       DROP	// 
-      LTIME	//  _40
-      1685288050 PUSHINT	//  _40 _41=1685288050
-      16 PUSHINT	//  _40 _41=1685288050 _42=16
-      NEWC	//  _40 _41=1685288050 _42=16 _43
-      6 STU	//  _40 _41=1685288050 _45
-      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _40 _41=1685288050 _45 _46
-      STSLICER	//  _40 _41=1685288050 _47
-      100000000 PUSHINT	//  _40 _41=1685288050 _47 _48=100000000
-      STVARUINT16	//  _40 _41=1685288050 _49
-      139 STU	//  _40 _53
-      64 STU	//  _55
-      ENDC	//  _56
-      1 PUSHINT	//  _56 _57=1
+      LTIME	//  _44
+      1685288050 PUSHINT	//  _44 _45=1685288050
+      16 PUSHINT	//  _44 _45=1685288050 _46=16
+      NEWC	//  _44 _45=1685288050 _46=16 _47
+      6 STU	//  _44 _45=1685288050 _49
+      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _44 _45=1685288050 _49 _50
+      STSLICER	//  _44 _45=1685288050 _51
+      100000000 PUSHINT	//  _44 _45=1685288050 _51 _52=100000000
+      STVARUINT16	//  _44 _45=1685288050 _53
+      139 STU	//  _44 _57
+      64 STU	//  _59
+      ENDC	//  _60
+      1 PUSHINT	//  _60 _61=1
       SENDRAWMSG
-      0 PUSHINT	//  _59=0
-      16 PUSHINT	//  _59=0 _60=16
-      NEWC	//  _59=0 _60=16 _61
-      6 STU	//  _59=0 _63
-      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _59=0 _63 _64
-      STSLICER	//  _59=0 _65
-      143 STU	//  _71
-      x{537562736372697074696f6e20776f726b73} PUSHSLICE	//  _71 _72
-      STSLICER	//  _73
-      ENDC	//  _74
-      160 PUSHINT	//  _74 _77
+      0 PUSHINT	//  _63=0
+      16 PUSHINT	//  _63=0 _64=16
+      NEWC	//  _63=0 _64=16 _65
+      6 STU	//  _63=0 _67
+      x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _63=0 _67 _68
+      STSLICER	//  _63=0 _69
+      143 STU	//  _75
+      x{537562736372697074696f6e20776f726b73} PUSHSLICE	//  _75 _76
+      STSLICER	//  _77
+      ENDC	//  _78
+      160 PUSHINT	//  _78 _81
       SENDRAWMSG
     }>ELSE<{	//  opcode
       DUP
-      1685288050 PUSHINT	//  opcode opcode _79=1685288050
-      EQUAL	//  opcode _80
+      1685288050 PUSHINT	//  opcode opcode _83=1685288050
+      EQUAL	//  opcode _84
       IF:<{	//  opcode
         DROP	// 
-        0 PUSHINT	//  _81=0
-        16 PUSHINT	//  _81=0 _82=16
-        NEWC	//  _81=0 _82=16 _83
-        6 STU	//  _81=0 _85
-        x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _81=0 _85 _86
-        STSLICER	//  _81=0 _87
-        143 STU	//  _93
-        ENDC	//  _94
-        160 PUSHINT	//  _94 _97
+        0 PUSHINT	//  _85=0
+        16 PUSHINT	//  _85=0 _86=16
+        NEWC	//  _85=0 _86=16 _87
+        6 STU	//  _85=0 _89
+        x{8016543D9EAA8BC0ED9A6D5CA2DD4FD7BE655D401195457095F30CD7D9641112B5B_} PUSHSLICE	//  _85=0 _89 _90
+        STSLICER	//  _85=0 _91
+        143 STU	//  _97
+        ENDC	//  _98
+        160 PUSHINT	//  _98 _101
         SENDRAWMSG
       }>ELSE<{	//  opcode
-        32 PUSHPOW2DEC	//  opcode _99=4294967295
-        EQUAL	//  _100
+        32 PUSHPOW2DEC	//  opcode _103=4294967295
+        EQUAL	//  _104
         IF:<{	// 
-          b{}  s>c PUSHREF	//  _101
+          b{}  s>c PUSHREF	//  _105
           c4 POP
         }>	// 
       }>

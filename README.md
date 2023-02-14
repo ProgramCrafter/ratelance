@@ -115,7 +115,8 @@ _ sig:uint512 sw:uint32 until:uint32 seqno:uint32 [1]:uint8 [0]:uint8 [0.05]:TON
 _ offer_contract:MsgAddressInt worker:MsgAddressInt val:uint64 desc:^Cell = Msg;
 
 // CUS-5. Poster chooses an offer.
-lock_on_offer#000000AC offer_data_init:^OfferContractData = Msg;
+lock_on_offer#000000AC offer_data_init:^OfferContractData
+                       addr:MsgAddressInt = Msg;
 
 // CUS-6. Job contract locks.
 collapse#000000B1 current_short_hash:uint160 = Msg;
@@ -131,7 +132,7 @@ offer_locked$01   job:MsgAddressInt worker:MsgAddressInt stake:uint64 desc:^Cell
 give_stake#f06c7567 query_id:uint64 = Msg;
 
 // CUS-9-OK. Offer merges into job contract.
-lock_success#A3 worker:MsgAddressInt desc:^Cell worker_key:uint256 = Msg;
+lock_success#000000A3 worker:MsgAddressInt desc:^Cell worker_key:uint256 = Msg;
 unplug#64737472 query_id:uint64 = Msg;
 
 // CUS-8-ERR. Insufficient funds on worker's wallet.
