@@ -12,15 +12,10 @@ int starts_with(slice, slice) asm "SDPFXREV";
 int equal_slices(slice, slice) asm "SDEQ";
 int first_bit(slice) asm "SDFIRST";
 
-(int, slice) load_bounced_sender(cell in_msg) {
+(int, slice) load_bounced_sender(cell in_msg) inline_ref {
   slice in_msg = in_msg.begin_parse();
   int b = in_msg~load_uint(4) & 1;
   return (b, in_msg~load_msg_addr());
-}
-(int, int, slice) load_flags_sender(cell in_msg) {
-  slice in_msg = in_msg.begin_parse();
-  int flags = in_msg~load_uint(4);
-  return (flags & 2, flags & 1, in_msg~load_msg_addr());
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

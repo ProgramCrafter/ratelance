@@ -45,8 +45,10 @@ for contract in CONTRACTS_LIST:
   os.system(f'toncli fift run build/{contract}.fif')
   
   with open(ap(f'build/boc/{contract}.boc'), 'rb') as rf:
+    boc = rf.read()
+    print(f'====== BOC of {repr(contract)} is {len(boc)} B')
     with open(ap(f'build/boc/{contract}.hex'), 'wb') as wf:
-      wf.write(base64.b16encode(rf.read()))
+      wf.write(base64.b16encode(boc))
   
   print(f'====== Saved {repr(contract)} in BOC and HEX representation')
 
