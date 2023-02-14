@@ -636,3 +636,5 @@ PROGRAM{
     THROWANY
   }>
 }END>c
+
+boc>B "build/boc/contract-offer.boc" B>file
