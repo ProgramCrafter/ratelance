@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import base64
 import shutil
+import sys
 import os
 
 FIFT_LIBS_LIST = 'Fift Asm AsmTests TonUtil Lists Color'.split(' ')
@@ -52,7 +53,8 @@ for contract in CONTRACTS_LIST:
   
   print(f'====== Saved {repr(contract)} in BOC and HEX representation')
 
-for fift_lib in FIFT_LIBS_LIST:
-  os.remove(ap(f'{base_path}/{fift_lib}.fif'))
-
-print('====== Deleted Fift libs =================')
+if '--noclean' not in sys.argv:
+  for fift_lib in FIFT_LIBS_LIST:
+    os.remove(ap(f'{base_path}/{fift_lib}.fif'))
+  
+  print('====== Deleted Fift libs =================')

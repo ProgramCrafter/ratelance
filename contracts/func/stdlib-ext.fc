@@ -11,6 +11,9 @@ cell  load_nth_ref(slice v, int offset)          asm "PLDREFVAR";
 int starts_with(slice, slice) asm "SDPFXREV";
 int equal_slices(slice, slice) asm "SDEQ";
 int first_bit(slice) asm "SDFIRST";
+int tuple_length(tuple) asm "TLEN";
+
+forall X -> int is_null(X) asm "ISNULL";
 
 (int, slice) load_bounced_sender(cell in_msg) inline {
   slice in_msg = in_msg.begin_parse();

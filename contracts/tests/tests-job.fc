@@ -1,4 +1,4 @@
-forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure asm
+forall F, A, R -> (int, int, R) gas::invoke_nowrap(F fun, A args) impure asm
   "{"                                ;; <- this function saves gas-remaining to 11-th element of c7's config
     "c7 PUSH DUP FIRST"              ;; (c7, config)
     "GASLIMITSTEMP SWAP DROP"        ;; (c7, config, gas_remaining)
@@ -14,13 +14,25 @@ forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure as
     ;; from consumed gas value
     "145 PUSHINT SUB"
   "} : compute-gas-used"
-
+  
+  "c7 PUSH DUP FIRST c0 PUSH"        ;; (fun, args, c7, config, c0)
+  "12 SETINDEXQ 0 SETINDEX"          ;; (fun, args, c7)
+  "c7 POP"                           ;; (fun, args)
+  
   "NEWC ENDC c5 POP"                 ;; clear actions cell
   "RESETLOADEDCELLS"                 ;; <- make sure first cell load cost 100 gas, not 25
   "255 PUSHINT EXPLODEVAR"           ;; (fun, arg_1, arg_2, ..., arg_n, n)
   "DUP INC ROLLX"                    ;; (arg_1, arg_2, ..., arg_n, n, fun)
   "<{"
     "<{"                             ;; <- normal execution
+      "<{"
+        "compute-gas-used"           ;; <- execution terminated via jump to c1
+        "DEPTH DEC ROLLREVX"
+        "DEPTH DEC TUPLEVAR"
+        "ZERO ROTREV"                ;; (exit_code, gas_used, [res...])
+        "c7 PUSH FIRST 12 INDEX"     ;; (exit_code, gas_used, [res...], ret_to)
+        "JMPX"
+      "}> PUSHCONT SWAP c1 SETCONTCTR"
       "save-gas-remaining"
       "EXECUTE"
       "compute-gas-used"             ;; <- it is important to call it just after EXECUTE, so we don't count additional commands
@@ -38,6 +50,11 @@ forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure as
   "CALLXVARARGS"                     ;; (exit_code, gas_used, [res..])
 ;
 
+forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure {
+  ;; no inlining
+  return gas::invoke_nowrap(fun, args);
+}
+
 forall F, A, R -> (int, R) gas::invoke_method(F fun, A args) impure method_id {
   (int exit_code, int gas_used, R return_values) = gas::invoke_method_full(fun, args);
   throw_if(exit_code, (exit_code != 0) & (exit_code != 1));
@@ -46,6 +63,9 @@ forall F, A, R -> (int, R) gas::invoke_method(F fun, A args) impure method_id {
 
 forall F, A -> int invoke_gas(F fun, A args) impure method_id {
   (int exit_code, int gas_used, _) = gas::invoke_method_full(fun, args);
+  
+  ~dump(4445); ~dump("gas::invoke_method_full exit"u);
+  
   throw_if(exit_code, (exit_code != 0) & (exit_code != 1));
   return gas_used;
 }
@@ -54,45 +74,37 @@ forall F, A -> int invoke_gas(F fun, A args) impure method_id {
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; job_unlocked$00 poster:MsgAddressInt value:uint64 desc:^.. poster_key:uint256
+cell init_job() asm
+  "b{00}"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "x{000000003b9aca00}"
+  "x{0000000054657374206A6F62} |_"
+  "<b 20230215 256 u>B priv>pub B, b> <s"
+  "|+ |+ |+ |+ s>c PUSHREF";
 
-() __test_indicate_todo() {
-  ~dump(4445); ~dump("TODO: tests"u);
+builder store_poster(builder v) asm
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "|+ PUSHSLICE STSLICER";
+builder build_poster_pfx() asm
+  "x{6}"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "b{00}"
+  "|+ |+ |+ PUSHSLICE NEWC STSLICE";
+
+() __test_job_init_success() {
+  set_data(init_job());
+  invoke_gas(recv_internal, [1, build_poster_pfx().end_cell(),
+      begin_cell().end_cell().begin_parse()]);
+  throw_unless(110, cell_hash(get_data()) == cell_hash(init_job()));
+}
+
+() __test_job_revoke_success() {
+  set_data(init_job());
+  invoke_gas(recv_internal, [1, build_poster_pfx().end_cell(),
+      begin_cell().store_uint(op::cancel_job, 32).end_cell().begin_parse()]);
   
-  throw(100);
-}
-
-int check_termination() {
-  int v = 1;
-  terminate();
-  v~impure_touch();
-  return 2;
-}
-int check_termination_conditional(int cond) {
-  int v = 1;
-  terminate_if(cond);
-  v~impure_touch();
-  return 2;
-}
-
-int check_termination_inside_if(int cond) {
-  int v = 1;
-  v~impure_touch();
-  if (v) {
-    terminate_if(cond);
-  }
-  v~impure_touch();
-  return 2;
-}
-
-() __test_check_termination() {
-  throw_unless(100, check_termination() == 1);
-}
-() __test_check_termination_cond_true() {
-  throw_unless(100, check_termination_conditional(1) == 1);
-}
-() __test_check_termination_cond_false() {
-  throw_unless(100, check_termination_conditional(0) == 2);
-}
-() __test_check_termination_inside_if() {
-  throw_unless(100, check_termination_inside_if(1) == 1);
+  tuple actions = parse_c5();
+  throw_if(120, is_null(actions));
+  throw_unless(121, tuple_length(actions) == 1);
 }

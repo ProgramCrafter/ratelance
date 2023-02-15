@@ -98,16 +98,11 @@ PROGRAM{
   107888 DECLMETHOD get_job_value
   94634 DECLMETHOD get_job_poster
   DECLPROC recv_internal
+  DECLPROC gas::invoke_method_full
   91872 DECLMETHOD gas::invoke_method
   99215 DECLMETHOD invoke_gas
-  DECLPROC __test_indicate_todo
-  DECLPROC check_termination
-  DECLPROC check_termination_conditional
-  DECLPROC check_termination_inside_if
-  DECLPROC __test_check_termination
-  DECLPROC __test_check_termination_cond_true
-  DECLPROC __test_check_termination_cond_false
-  DECLPROC __test_check_termination_inside_if
+  DECLPROC __test_job_init_success
+  DECLPROC __test_job_revoke_success
   power PROCREF:<{
     //  x exponent
     OVER	//  x exponent x
@@ -2573,7 +2568,7 @@ PROGRAM{
     16 PUSHPOW2DEC	//  _138=65535
     THROWANY
   }>
-  gas::invoke_method PROC:<{
+  gas::invoke_method_full PROC:<{
     //  fun args
     {
     c7 PUSH DUP FIRST
@@ -2585,12 +2580,23 @@ PROGRAM{
     11 GETPARAM SWAP SUB
     145 PUSHINT SUB
     } : compute-gas-used
+    c7 PUSH DUP FIRST c0 PUSH
+    12 SETINDEXQ 0 SETINDEX
+    c7 POP
     NEWC ENDC c5 POP
     RESETLOADEDCELLS
     255 PUSHINT EXPLODEVAR
     DUP INC ROLLX
     <{
     <{
+    <{
+    compute-gas-used
+    DEPTH DEC ROLLREVX
+    DEPTH DEC TUPLEVAR
+    ZERO ROTREV
+    c7 PUSH FIRST 12 INDEX
+    JMPX
+    }> PUSHCONT SWAP c1 SETCONTCTR
     save-gas-remaining
     EXECUTE
     compute-gas-used
@@ -2605,7 +2611,11 @@ PROGRAM{
     TRY
     }> PUSHCONT
     ROT INC -1 PUSHINT
-    CALLXVARARGS	//  exit_code gas_used return_values
+    CALLXVARARGS	//  _3 _4 _5
+  }>
+  gas::invoke_method PROC:<{
+    //  fun args
+    gas::invoke_method_full CALLDICT	//  exit_code gas_used return_values
     s2 PUSH	//  exit_code gas_used return_values exit_code
     0 NEQINT	//  exit_code gas_used return_values _7
     s3 PUSH	//  exit_code gas_used return_values _7 exit_code
@@ -2617,109 +2627,90 @@ PROGRAM{
   }>
   invoke_gas PROC:<{
     //  fun args
-    {
-    c7 PUSH DUP FIRST
-    GASLIMITSTEMP SWAP DROP
-    11 SETINDEX 0 SETINDEX c7 POP
-    } : save-gas-remaining
-    {
-    GASLIMITSTEMP SWAP DROP
-    11 GETPARAM SWAP SUB
-    145 PUSHINT SUB
-    } : compute-gas-used
-    NEWC ENDC c5 POP
-    RESETLOADEDCELLS
-    255 PUSHINT EXPLODEVAR
-    DUP INC ROLLX
-    <{
-    <{
-    save-gas-remaining
-    EXECUTE
-    compute-gas-used
-    DEPTH DEC ROLLREVX
-    DEPTH DEC TUPLEVAR
-    ZERO ROTREV
-    }> PUSHCONT
-    <{
-    compute-gas-used
-    ROT DROP NIL
-    }> PUSHCONT
-    TRY
-    }> PUSHCONT
-    ROT INC -1 PUSHINT
-    CALLXVARARGS	//  _12 _13 _14
+    gas::invoke_method_full CALLDICT	//  _16 _17 _18
+    DROP	//  exit_code gas_used
+    4445 PUSHINT	//  exit_code gas_used _6=4445
+    s0 DUMP	//  exit_code gas_used _7
+    DROP	//  exit_code gas_used
+    10887254690755674105606857167784525279393902318072410587034832890228 PUSHINT	//  exit_code gas_used _8=10887254690755674105606857167784525279393902318072410587034832890228
+    s0 DUMP	//  exit_code gas_used _9
     DROP	//  exit_code gas_used
     OVER	//  exit_code gas_used exit_code
-    0 NEQINT	//  exit_code gas_used _7
-    s2 PUSH	//  exit_code gas_used _7 exit_code
-    1 NEQINT	//  exit_code gas_used _7 _9
-    AND	//  exit_code gas_used _10
-    s1 s2 XCHG	//  gas_used exit_code _10
+    0 NEQINT	//  exit_code gas_used _11
+    s2 PUSH	//  exit_code gas_used _11 exit_code
+    1 NEQINT	//  exit_code gas_used _11 _13
+    AND	//  exit_code gas_used _14
+    s1 s2 XCHG	//  gas_used exit_code _14
     THROWANYIF
   }>
-  __test_indicate_todo PROC:<{
+  __test_job_init_success PROC:<{
     // 
-    4445 PUSHINT	//  _0=4445
-    s0 DUMP	//  _1
+    b{00}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _2
+    1 PUSHINT	//  _2 _4=1
+    x{6}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
+    ENDC	//  _2 _4=1 _6
+    NEWC	//  _2 _4=1 _6 _7
+    ENDC	//  _2 _4=1 _6 _8
+    CTOS	//  _2 _4=1 _6 _9
+    TRIPLE	//  _2 _3
+    invoke_gas CALLDICT	//  _10
     DROP	// 
-    101924095887283726832596083 PUSHINT	//  _2=101924095887283726832596083
-    s0 DUMP	//  _3
+    c4 PUSH	//  _12
+    HASHCU	//  _13
+    b{00}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ s>c PUSHREF	//  _13 _14
+    HASHCU	//  _13 _15
+    EQUAL	//  _16
+    110 THROWIFNOT
+  }>
+  __test_job_revoke_success PROC:<{
+    // 
+    b{00}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _2
+    1 PUSHINT	//  _2 _4=1
+    x{6}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
+    ENDC	//  _2 _4=1 _6
+    235 PUSHINT	//  _2 _4=1 _6 _7=235
+    NEWC	//  _2 _4=1 _6 _7=235 _8
+    32 STU	//  _2 _4=1 _6 _10
+    ENDC	//  _2 _4=1 _6 _11
+    CTOS	//  _2 _4=1 _6 _12
+    TRIPLE	//  _2 _3
+    invoke_gas CALLDICT	//  _13
     DROP	// 
-    100 THROW
-  }>
-  check_termination PROC:<{
-    // 
-    1 PUSHINT	//  v=1
-    RETALT	//  _4
-    DROP	// 
-    2 PUSHINT	//  _5=2
-  }>
-  check_termination_conditional PROC:<{
-    //  cond
-    1 PUSHINT	//  cond v=1
-    SWAP	//  v=1 cond
-    IFRETALT	//  _5
-    DROP	// 
-    2 PUSHINT	//  _6=2
-  }>
-  check_termination_inside_if PROC:<{
-    //  cond
-    1 PUSHINT	//  cond v
-    DUP	//  cond v v
-    IF:<{	//  cond v
-      SWAP	//  v cond
-      IFRETALT
-    }>ELSE<{
-      NIP	//  v
-    }>	//  _7
-    DROP	// 
-    2 PUSHINT	//  _8=2
-  }>
-  __test_check_termination PROC:<{
-    // 
-    check_termination CALLDICT	//  _1
-    1 EQINT	//  _3
-    100 THROWIFNOT
-  }>
-  __test_check_termination_cond_true PROC:<{
-    // 
-    1 PUSHINT	//  _1=1
-    check_termination_conditional CALLDICT	//  _2
-    1 EQINT	//  _4
-    100 THROWIFNOT
-  }>
-  __test_check_termination_cond_false PROC:<{
-    // 
-    0 PUSHINT	//  _1=0
-    check_termination_conditional CALLDICT	//  _2
-    2 EQINT	//  _4
-    100 THROWIFNOT
-  }>
-  __test_check_termination_inside_if PROC:<{
-    // 
-    1 PUSHINT	//  _1=1
-    check_termination_inside_if CALLDICT	//  _2
-    1 EQINT	//  _4
-    100 THROWIFNOT
+    parse_c5 CALLDICT	//  actions
+    DUP	//  actions actions
+    ISNULL	//  actions _17
+    120 THROWIF
+    TLEN	//  _20
+    1 EQINT	//  _22
+    121 THROWIFNOT
   }>
 }END>c
