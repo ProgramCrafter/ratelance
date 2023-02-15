@@ -103,44 +103,48 @@ job_unlocked$00 poster:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
                 = JobContractData;
 
 // CUS-2. Analytic message indicating address of newly created job contract.
-_ job_contract:MsgAddressInt poster:MsgAddressInt value:uint64 desc:^Cell = Msg;
+_ job_contract:MsgAddressInt poster:MsgAddressInt value:uint64 desc:^Cell
+  = InternalMsgBody;
 
 // CUS-3. Worker deploys an offer contract as plugin.
 offer_unlocked$00 job:MsgAddressInt worker:MsgAddressInt stake:uint64 desc:^Cell
                   worker_key:uint256 short_job_hash:uint160 = OfferContractData;
 _ sig:uint512 sw:uint32 until:uint32 seqno:uint32 [1]:uint8 [0]:uint8 [0.05]:TON
-  state_init:^OfferContractState body_init:^(()) = Msg;
+  state_init:^OfferContractState body_init:^(()) = InternalMsgBody;
 
 // CUS-4. Analytic message indicating address of newly created offer contract.
-_ offer_contract:MsgAddressInt worker:MsgAddressInt val:uint64 desc:^Cell = Msg;
+_ offer_contract:MsgAddressInt worker:MsgAddressInt val:uint64 desc:^Cell
+  = InternalMsgBody;
 
 // CUS-5. Poster chooses an offer.
 lock_on_offer#000000AC offer_data_init:^OfferContractData
-                       addr:MsgAddressInt = Msg;
+                       addr:MsgAddressInt = InternalMsgBody;
 
 // CUS-6. Job contract locks.
-collapse#000000B1 current_short_hash:uint160 = Msg;
+collapse#000000B1 current_short_hash:uint160 = InternalMsgBody;
 job_locked$01 offer:MsgAddressInt poster:MsgAddressInt value:uint64 desc:^Cell
               poster_key:uint256 = JobContractData;
 
 // CUS-7. Offer contract requests money and locks.
-take_stake#706c7567 query_id:uint64 stake:(VarUInteger 16) ext:hme_empty = Msg;
+take_stake#706c7567 query_id:uint64 stake:(VarUInteger 16) ext:hme_empty
+  = InternalMsgBody;
 offer_locked$01   job:MsgAddressInt worker:MsgAddressInt stake:uint64 desc:^Cell
                   worker_key:uint256 short_job_hash:uint160 = OfferContractData;
 
 // CUS-8-OK. Wallet returns the money.
-give_stake#f06c7567 query_id:uint64 = Msg;
+give_stake#f06c7567 query_id:uint64 = InternalMsgBody;
 
 // CUS-9-OK. Offer merges into job contract.
-lock_success#000000A3 worker:MsgAddressInt desc:^Cell worker_key:uint256 = Msg;
-unplug#64737472 query_id:uint64 = Msg;
+lock_success#000000A3 worker:MsgAddressInt desc:^Cell worker_key:uint256
+  = InternalMsgBody;
+unplug#64737472 query_id:uint64 = InternalMsgBody;
 
 // CUS-8-ERR. Insufficient funds on worker's wallet.
-refuse_give#ffffffff [706c7567]:uint32 query_id:uint64 ... = Msg;
+refuse_give#ffffffff [706c7567]:uint32 query_id:uint64 ... = InternalMsgBody;
 
 // CUS-9-ERR. Offer contract unlocks itself and job contract.
 // offer_unlocked
-lock_failed#000000D4 = Msg;
+lock_failed#000000D4 = InternalMsgBody;
 // job_unlocked
 
 // CUS-10. Job contract essentially becomes multisig wallet.
@@ -150,10 +154,12 @@ job_working$10 poster:MsgAddressInt worker:MsgAddressInt value:uint64
                = JobContractData;
 
 // CUS-11. Single-signed messages.
-_ [FFFF726C3A3A6A6F623A3A7630]:bits ton_range:(uint64, uint64) = Signed;
-poster_proposal$00 sig:bits512 worker_ton_range:(uint64, uint64) = Msg;
-worker_proposal$01 sig:bits512 worker_ton_range:(uint64, uint64) = Msg;
-ratelance_proposal$10 sig:bits512 worker_ton_range:(uint64, uint64) = Msg;
+_ min_nton:uint64 max_nton:uint64 = PayLim;
+_ [FFFF726C3A3A6A6F623A3A7630]:bits $00000 self:MsgAddressInt ton_range:PayLim
+  = Signed;
+poster_proposal$00 sig:bits512 worker_ton_range:PayLim = InternalMsgBody;
+worker_proposal$01 sig:bits512 worker_ton_range:PayLim = InternalMsgBody;
+ratelance_proposal$10 sig:bits512 worker_ton_range:PayLim = InternalMsgBody;
 
 // Config parameter ID: zlib.crc32(b'ratelance::decisions') & 0x7FFFFFFF
 ton_vals_proposal#_ dec_by_job:(HashmapE MsgAddressInt (uint64,uint64))
@@ -162,11 +168,12 @@ ton_vals_proposal#_ dec_by_job:(HashmapE MsgAddressInt (uint64,uint64))
 // CUS-12. Finishing work.
 finish_job#000000BB first_sig:^[poster/worker/ratelance_proposal/$11]
                     second_sig:^[poster/worker/ratelance_proposal/$11]
-                    {first_sig::discriminant != second_sig::discriminant} = Msg;
+                    {first_sig::discriminant != second_sig::discriminant}
+                    = InternalMsgBody;
 
 // CUS-1,2-REV. Cancelling job.
-cancel_job#000000EB = Msg;
+cancel_job#000000EB = InternalMsgBody;
 
 // CUS-3,4-REV. Cancelling offer.
-destruct#64737472 = Msg;
+destruct#64737472 = InternalMsgBody;
 ```

@@ -438,14 +438,18 @@ PROGRAM{
   }>
   job::wrap_for_signing PROCINLINE:<{
     //  worker_ton_min worker_ton_max
-    NEWC	//  worker_ton_min worker_ton_max _2
-    x{FFFF726C3A3A6A6F623A3A7630} PUSHSLICE	//  worker_ton_min worker_ton_max _2 _3
-    STSLICER	//  worker_ton_min worker_ton_max _4
-    s1 s2 XCHG	//  worker_ton_max worker_ton_min _4
-    64 STU	//  worker_ton_max _6
-    64 STU	//  _8
-    ENDC	//  _9
-    CTOS	//  _10
+    0 PUSHINT	//  worker_ton_min worker_ton_max _2=0
+    NEWC	//  worker_ton_min worker_ton_max _2=0 _3
+    x{FFFF726C3A3A6A6F623A3A7630} PUSHSLICE	//  worker_ton_min worker_ton_max _2=0 _3 _4
+    STSLICER	//  worker_ton_min worker_ton_max _2=0 _5
+    5 STU	//  worker_ton_min worker_ton_max _7
+    MYADDR	//  worker_ton_min worker_ton_max _7 _8
+    STSLICER	//  worker_ton_min worker_ton_max _9
+    s1 s2 XCHG	//  worker_ton_max worker_ton_min _9
+    64 STU	//  worker_ton_max _11
+    64 STU	//  _13
+    ENDC	//  _14
+    CTOS	//  _15
   }>
   job::parse_proposal_with_tag PROCINLINE:<{
     //  v
