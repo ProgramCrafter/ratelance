@@ -95,10 +95,6 @@ PROGRAM{
   91872 DECLMETHOD gas::invoke_method
   99215 DECLMETHOD invoke_gas
   DECLPROC __test_indicate_todo
-  DECLPROC __test_gas_empty_depth
-  DECLPROC __test_gas_nonempty_depth
-  DECLPROC __test_gas_empty_parse
-  DECLPROC __test_gas_nonempty_parse
   power PROCREF:<{
     //  x exponent
     OVER	//  x exponent x
@@ -2292,7 +2288,6 @@ PROGRAM{
     64 STU	//  worker_ton_max _11
     64 STU	//  _13
     ENDC	//  _14
-    CTOS	//  _15
   }>
   job::parse_proposal_with_tag PROCINLINE:<{
     //  v
@@ -2563,41 +2558,5 @@ PROGRAM{
     s0 DUMP	//  _3
     DROP	// 
     100 THROW
-  }>
-  __test_gas_empty_depth PROC:<{
-    // 
-    CONT:<{
-      TEN CDATASIZE DROP NIP
-    }>	//  _0
-    b{} s>c PUSHREF	//  _0 _2
-    SINGLE	//  _0 _1
-    invoke_gas CALLDICT	//  _3
-  }>
-  __test_gas_nonempty_depth PROC:<{
-    // 
-    CONT:<{
-      TEN CDATASIZE DROP NIP
-    }>	//  _0
-    b{1} s>c PUSHREF	//  _0 _2
-    SINGLE	//  _0 _1
-    invoke_gas CALLDICT	//  _3
-  }>
-  __test_gas_empty_parse PROC:<{
-    // 
-    CONT:<{
-      CTOS SBITS
-    }>	//  _0
-    b{} s>c PUSHREF	//  _0 _2
-    SINGLE	//  _0 _1
-    invoke_gas CALLDICT	//  _3
-  }>
-  __test_gas_nonempty_parse PROC:<{
-    // 
-    CONT:<{
-      CTOS SBITS
-    }>	//  _0
-    b{1} s>c PUSHREF	//  _0 _2
-    SINGLE	//  _0 _1
-    invoke_gas CALLDICT	//  _3
   }>
 }END>c

@@ -55,16 +55,16 @@ forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure {
   return gas::invoke_nowrap(fun, args);
 }
 
-forall F, A, R -> (int, R) gas::invoke_method(F fun, A args) impure method_id {
+forall F, A, R -> (int, R) gas::invoke_method(F fun, A args) impure inline {
   (int exit_code, int gas_used, R return_values) = gas::invoke_method_full(fun, args);
   throw_if(exit_code, (exit_code != 0) & (exit_code != 1));
   return (gas_used, return_values);
 }
 
-forall F, A -> int invoke_gas(F fun, A args) impure method_id {
+forall F, A -> int invoke_gas(F fun, A args) impure inline {
   (int exit_code, int gas_used, _) = gas::invoke_method_full(fun, args);
   
-  ~dump(4445); ~dump("gas::invoke_method_full exit"u);
+  ;; ~dump(4445); ~dump("gas::invoke_method_full exit"u);
   
   throw_if(exit_code, (exit_code != 0) & (exit_code != 1));
   return gas_used;
@@ -82,6 +82,36 @@ cell init_job() asm
   "x{0000000054657374206A6F62} |_"
   "<b 20230215 256 u>B priv>pub B, b> <s"
   "|+ |+ |+ |+ s>c PUSHREF";
+cell init_job_locked() asm
+  "b{01}"
+  "b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "x{000000003b9aca00}"
+  "x{0000000054657374206A6F62} |_"
+  "<b 20230215 256 u>B priv>pub B, b> <s"
+  "|+ |+ |+ |+ |+ |+ s>c PUSHREF";
+cell init_job_working() asm
+  "b{10}"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}"
+  "x{000000003b9aca00}"
+    "x{0000000054657374206A6F62} |_"
+    
+    "x{0000000054657374206A6F62} |_"
+    
+    "<b 20230215 256 u>B priv>pub B, b> <s"
+    "<b 20230216 256 u>B priv>pub B, b> <s |+"
+    "x{233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB} |+ |_"
+  "|+ |+ |+ |+ |+ s>c PUSHREF";
+
+slice offer_addr() asm
+  "b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}"
+  "|+ PUSHSLICE";
+slice worker_addr_desc_key() asm
+  "b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}"
+    "x{0000000054657374206A6F62} |_"
+  "<b 20230216 256 u>B priv>pub B, b> <s"
+  "|+ |+ PUSHSLICE";
 
 builder store_poster(builder v) asm
   "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
@@ -91,6 +121,55 @@ builder build_poster_pfx() asm
   "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
   "b{00}"
   "|+ |+ |+ PUSHSLICE NEWC STSLICE";
+builder build_offer_pfx() asm
+  "x{6}"
+  "b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}"
+  "b{00}"
+  "|+ |+ |+ PUSHSLICE NEWC STSLICE";
+builder build_offer_pfx_bounced() asm
+  "x{7}"
+  "b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}"
+  "b{00}"
+  "|+ |+ |+ PUSHSLICE NEWC STSLICE";
+
+slice sign_poster() asm
+  "x{FFFF726C3A3A6A6F623A3A7630}"
+  "x{0400} x{77ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}"
+  "<b 100000 64 u, 200000 64 u, b> <s"
+  "|+ |+ |+"
+  "shash"
+  "20230215 256 u>B ed25519_sign <b swap B, b> <s PUSHSLICE";
+cell proposal_poster() inline {
+  return begin_cell()
+    .store_uint(0, 2)
+    .store_slice(sign_poster())
+    .store_uint(100000, 64)
+    .store_uint(200000, 64)
+    .end_cell();
+}
+
+slice sign_worker() asm
+  "x{FFFF726C3A3A6A6F623A3A7630}"
+  "x{0400} x{77ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}"
+  "<b 150000 64 u, 250000 64 u, b> <s"
+  "|+ |+ |+"
+  "shash"
+  "20230216 256 u>B ed25519_sign <b swap B, b> <s PUSHSLICE";
+cell proposal_worker() inline {
+  return begin_cell()
+    .store_uint(1, 2)
+    .store_slice(sign_worker())
+    .store_uint(150000, 64)
+    .store_uint(250000, 64)
+    .end_cell();
+}
+
+
+() __test_output_address() {
+  slice addr = my_address();
+  addr~skip_bits(11);
+  ~dump(begin_cell().store_slice(addr).end_cell().begin_parse());
+}
 
 () __test_job_init_success() {
   set_data(init_job());
@@ -107,4 +186,71 @@ builder build_poster_pfx() asm
   tuple actions = parse_c5();
   throw_if(120, is_null(actions));
   throw_unless(121, tuple_length(actions) == 1);
+  throw_unless(122, first(first(actions)) == 0);
+  throw_unless(123, third(first(actions)) == 128);
+}
+
+() __test_job_lock_success() {
+  set_data(init_job());
+  invoke_gas(recv_internal, [1, build_poster_pfx().end_cell(),
+      begin_cell()
+     .store_uint(op::lock_on_offer, 32)
+     .store_ref(begin_cell().end_cell())
+     .store_slice(offer_addr())
+     .end_cell()
+     .begin_parse()]);
+  
+  tuple actions = parse_c5();
+  throw_if(130, is_null(actions));
+  throw_unless(131, tuple_length(actions) == 1);
+  throw_unless(132, first(first(actions)) == 0);
+  throw_unless(133, third(first(actions)) == 64);
+  
+  throw_unless(134, cell_hash(get_data()) == cell_hash(init_job_locked()));
+}
+
+() __test_job_unlock_on_failure() {
+  set_data(init_job_locked());
+  invoke_gas(recv_internal, [1, build_offer_pfx().end_cell(),
+      begin_cell().store_uint(op::lock_failed, 32).end_cell().begin_parse()]);
+  
+  throw_unless(140, is_null(parse_c5()));
+  throw_unless(141, cell_hash(get_data()) == cell_hash(init_job()));
+}
+
+() __test_job_unlock_on_bounce() {
+  set_data(init_job_locked());
+  invoke_gas(recv_internal, [1, build_offer_pfx_bounced().end_cell(),
+      begin_cell().store_uint(0xFFFFFFFF, 32).end_cell().begin_parse()]);
+  
+  throw_unless(150, is_null(parse_c5()));
+  throw_unless(151, cell_hash(get_data()) == cell_hash(init_job()));
+}
+
+() __test_job_lockup_worker_stake() {
+  set_data(init_job_locked());
+  invoke_gas(recv_internal, [1, build_offer_pfx().end_cell(),
+      begin_cell()
+     .store_uint(op::lock_success, 32)
+     .store_slice(worker_addr_desc_key())
+     .end_cell()
+     .begin_parse()]);
+  
+  throw_unless(160, is_null(parse_c5()));
+  throw_unless(161, cell_hash(get_data()) == cell_hash(init_job_working()));
+}
+
+() __test_job_work_complete() {
+  set_data(init_job_working());
+  invoke_gas(recv_internal, [1, build_offer_pfx().end_cell(),
+      begin_cell()
+     .store_uint(op::finish_job, 32)
+     .store_ref(proposal_poster())
+     .store_ref(proposal_worker())
+     .end_cell()
+     .begin_parse()]);
+  
+  tuple actions = parse_c5();
+  throw_if(170, is_null(actions));
+  throw_unless(171, tuple_length(actions) == 2);
 }

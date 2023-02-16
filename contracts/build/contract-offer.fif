@@ -449,7 +449,6 @@ PROGRAM{
     64 STU	//  worker_ton_max _11
     64 STU	//  _13
     ENDC	//  _14
-    CTOS	//  _15
   }>
   job::parse_proposal_with_tag PROCINLINE:<{
     //  v

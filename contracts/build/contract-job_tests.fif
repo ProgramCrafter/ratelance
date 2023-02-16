@@ -99,10 +99,18 @@ PROGRAM{
   94634 DECLMETHOD get_job_poster
   DECLPROC recv_internal
   DECLPROC gas::invoke_method_full
-  91872 DECLMETHOD gas::invoke_method
-  99215 DECLMETHOD invoke_gas
+  DECLPROC gas::invoke_method
+  DECLPROC invoke_gas
+  DECLPROC proposal_poster
+  DECLPROC proposal_worker
+  DECLPROC __test_output_address
   DECLPROC __test_job_init_success
   DECLPROC __test_job_revoke_success
+  DECLPROC __test_job_lock_success
+  DECLPROC __test_job_unlock_on_failure
+  DECLPROC __test_job_unlock_on_bounce
+  DECLPROC __test_job_lockup_worker_stake
+  DECLPROC __test_job_work_complete
   power PROCREF:<{
     //  x exponent
     OVER	//  x exponent x
@@ -2296,7 +2304,6 @@ PROGRAM{
     64 STU	//  worker_ton_max _11
     64 STU	//  _13
     ENDC	//  _14
-    CTOS	//  _15
   }>
   job::parse_proposal_with_tag PROCINLINE:<{
     //  v
@@ -2342,14 +2349,30 @@ PROGRAM{
   }>
   parse_proposal_check_sig PROCINLINE:<{
     //  v keys
-    DROP	//  v
-    job::parse_proposal_with_tag INLINECALLDICT	//  _18 _19 _20 _21
-    s2 POP	//  tag ub lb
-    s2 PUSH	//  tag ub lb tag
-    3 NEQINT	//  tag ub lb _8
-    IF:<{	//  tag ub lb
-    }>	//  tag ub lb
-    SWAP	//  tag lb ub
+    SWAP	//  keys v
+    job::parse_proposal_with_tag INLINECALLDICT	//  keys tag sig lb ub
+    s3 PUSH	//  keys tag sig lb ub tag
+    3 NEQINT	//  keys tag sig lb ub _8
+    IF:<{	//  keys tag sig lb ub
+      s3 PUSH	//  keys tag sig lb ub tag
+      8 LSHIFT#	//  keys tag sig lb ub _11
+      s1 s5 XCHG
+      8 PUSHPOW2	//  ub tag sig lb keys _11 _12=256
+      SDSUBSTR	//  ub tag sig lb key
+      s1 s4 PUSH2	//  ub tag sig lb key lb ub
+      job::wrap_for_signing INLINECALLDICT	//  ub tag sig lb key _15
+      HASHCU	//  ub tag sig lb key _16
+      SWAP	//  ub tag sig lb _16 key
+      256 PLDU	//  ub tag sig lb _16 _18
+      s1 s3 s0 XCHG3	//  ub tag lb _16 sig _18
+      CHKSIGNU	//  ub tag lb _19
+      198 THROWIFNOT
+      s0 s2 XCHG	//  lb tag ub
+    }>ELSE<{
+      s2 POP
+      s3 POP	//  lb tag ub
+    }>
+    s1 s2 XCHG	//  tag lb ub
   }>
   get_job_state PROC:<{
     // 
@@ -2613,7 +2636,7 @@ PROGRAM{
     ROT INC -1 PUSHINT
     CALLXVARARGS	//  _3 _4 _5
   }>
-  gas::invoke_method PROC:<{
+  gas::invoke_method PROCINLINE:<{
     //  fun args
     gas::invoke_method_full CALLDICT	//  exit_code gas_used return_values
     s2 PUSH	//  exit_code gas_used return_values exit_code
@@ -2625,23 +2648,66 @@ PROGRAM{
     THROWANYIF
     SWAP	//  gas_used return_values
   }>
-  invoke_gas PROC:<{
+  invoke_gas PROCINLINE:<{
     //  fun args
-    gas::invoke_method_full CALLDICT	//  _16 _17 _18
-    DROP	//  exit_code gas_used
-    4445 PUSHINT	//  exit_code gas_used _6=4445
-    s0 DUMP	//  exit_code gas_used _7
-    DROP	//  exit_code gas_used
-    10887254690755674105606857167784525279393902318072410587034832890228 PUSHINT	//  exit_code gas_used _8=10887254690755674105606857167784525279393902318072410587034832890228
-    s0 DUMP	//  exit_code gas_used _9
+    gas::invoke_method_full CALLDICT	//  _12 _13 _14
     DROP	//  exit_code gas_used
     OVER	//  exit_code gas_used exit_code
-    0 NEQINT	//  exit_code gas_used _11
-    s2 PUSH	//  exit_code gas_used _11 exit_code
-    1 NEQINT	//  exit_code gas_used _11 _13
-    AND	//  exit_code gas_used _14
-    s1 s2 XCHG	//  gas_used exit_code _14
+    0 NEQINT	//  exit_code gas_used _7
+    s2 PUSH	//  exit_code gas_used _7 exit_code
+    1 NEQINT	//  exit_code gas_used _7 _9
+    AND	//  exit_code gas_used _10
+    s1 s2 XCHG	//  gas_used exit_code _10
     THROWANYIF
+  }>
+  proposal_poster PROCINLINE:<{
+    // 
+    200000 PUSHINT	//  _0=200000
+    100000 PUSHINT	//  _0=200000 _1=100000
+    0 PUSHINT	//  _0=200000 _1=100000 _2=0
+    NEWC	//  _0=200000 _1=100000 _2=0 _3
+    2 STU	//  _0=200000 _1=100000 _5
+    x{FFFF726C3A3A6A6F623A3A7630}
+    x{0400} x{77ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}
+    <b 100000 64 u, 200000 64 u, b> <s
+    |+ |+ |+
+    shash
+    20230215 256 u>B ed25519_sign <b swap B, b> <s PUSHSLICE	//  _0=200000 _1=100000 _5 _6
+    STSLICER	//  _0=200000 _1=100000 _7
+    64 STU	//  _0=200000 _9
+    64 STU	//  _11
+    ENDC	//  _12
+  }>
+  proposal_worker PROCINLINE:<{
+    // 
+    250000 PUSHINT	//  _0=250000
+    150000 PUSHINT	//  _0=250000 _1=150000
+    1 PUSHINT	//  _0=250000 _1=150000 _2=1
+    NEWC	//  _0=250000 _1=150000 _2=1 _3
+    2 STU	//  _0=250000 _1=150000 _5
+    x{FFFF726C3A3A6A6F623A3A7630}
+    x{0400} x{77ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}
+    <b 150000 64 u, 250000 64 u, b> <s
+    |+ |+ |+
+    shash
+    20230216 256 u>B ed25519_sign <b swap B, b> <s PUSHSLICE	//  _0=250000 _1=150000 _5 _6
+    STSLICER	//  _0=250000 _1=150000 _7
+    64 STU	//  _0=250000 _9
+    64 STU	//  _11
+    ENDC	//  _12
+  }>
+  __test_output_address PROC:<{
+    // 
+    MYADDR	//  addr
+    11 PUSHINT	//  addr _3=11
+    SDSKIPFIRST	//  addr
+    NEWC	//  addr _5
+    SWAP	//  _5 addr
+    STSLICER	//  _6
+    ENDC	//  _7
+    CTOS	//  _8
+    s0 DUMP	//  _9
+    DROP	// 
   }>
   __test_job_init_success PROC:<{
     // 
@@ -2665,7 +2731,7 @@ PROGRAM{
     ENDC	//  _2 _4=1 _6 _8
     CTOS	//  _2 _4=1 _6 _9
     TRIPLE	//  _2 _3
-    invoke_gas CALLDICT	//  _10
+    invoke_gas INLINECALLDICT	//  _10
     DROP	// 
     c4 PUSH	//  _12
     HASHCU	//  _13
@@ -2703,14 +2769,264 @@ PROGRAM{
     ENDC	//  _2 _4=1 _6 _11
     CTOS	//  _2 _4=1 _6 _12
     TRIPLE	//  _2 _3
-    invoke_gas CALLDICT	//  _13
+    invoke_gas INLINECALLDICT	//  _13
     DROP	// 
     parse_c5 CALLDICT	//  actions
     DUP	//  actions actions
     ISNULL	//  actions _17
     120 THROWIF
-    TLEN	//  _20
-    1 EQINT	//  _22
+    DUP	//  actions actions
+    TLEN	//  actions _20
+    1 EQINT	//  actions _22
     121 THROWIFNOT
+    DUP	//  actions actions
+    FIRST	//  actions _25
+    FIRST	//  actions _26
+    0 EQINT	//  actions _28
+    122 THROWIFNOT
+    FIRST	//  _31
+    THIRD	//  _32
+    7 PUSHPOW2	//  _32 _33=128
+    EQUAL	//  _34
+    123 THROWIFNOT
+  }>
+  __test_job_lock_success PROC:<{
+    // 
+    b{00}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _2
+    1 PUSHINT	//  _2 _4=1
+    x{6}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
+    ENDC	//  _2 _4=1 _6
+    NEWC	//  _2 _4=1 _6 _7
+    ENDC	//  _2 _4=1 _6 _8
+    172 PUSHINT	//  _2 _4=1 _6 _8 _9=172
+    NEWC	//  _2 _4=1 _6 _8 _9=172 _10
+    32 STU	//  _2 _4=1 _6 _8 _12
+    STREF	//  _2 _4=1 _6 _13
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    |+ PUSHSLICE	//  _2 _4=1 _6 _13 _14
+    STSLICER	//  _2 _4=1 _6 _15
+    ENDC	//  _2 _4=1 _6 _16
+    CTOS	//  _2 _4=1 _6 _17
+    TRIPLE	//  _2 _3
+    invoke_gas INLINECALLDICT	//  _18
+    DROP	// 
+    parse_c5 CALLDICT	//  actions
+    DUP	//  actions actions
+    ISNULL	//  actions _22
+    130 THROWIF
+    DUP	//  actions actions
+    TLEN	//  actions _25
+    1 EQINT	//  actions _27
+    131 THROWIFNOT
+    DUP	//  actions actions
+    FIRST	//  actions _30
+    FIRST	//  actions _31
+    0 EQINT	//  actions _33
+    132 THROWIFNOT
+    FIRST	//  _36
+    THIRD	//  _37
+    64 EQINT	//  _39
+    133 THROWIFNOT
+    c4 PUSH	//  _42
+    HASHCU	//  _43
+    b{01}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ |+ |+ s>c PUSHREF	//  _43 _44
+    HASHCU	//  _43 _45
+    EQUAL	//  _46
+    134 THROWIFNOT
+  }>
+  __test_job_unlock_on_failure PROC:<{
+    // 
+    b{01}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _2
+    1 PUSHINT	//  _2 _4=1
+    x{6}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
+    ENDC	//  _2 _4=1 _6
+    212 PUSHINT	//  _2 _4=1 _6 _7=212
+    NEWC	//  _2 _4=1 _6 _7=212 _8
+    32 STU	//  _2 _4=1 _6 _10
+    ENDC	//  _2 _4=1 _6 _11
+    CTOS	//  _2 _4=1 _6 _12
+    TRIPLE	//  _2 _3
+    invoke_gas INLINECALLDICT	//  _13
+    DROP	// 
+    parse_c5 CALLDICT	//  _15
+    ISNULL	//  _16
+    140 THROWIFNOT
+    c4 PUSH	//  _19
+    HASHCU	//  _20
+    b{00}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ s>c PUSHREF	//  _20 _21
+    HASHCU	//  _20 _22
+    EQUAL	//  _23
+    141 THROWIFNOT
+  }>
+  __test_job_unlock_on_bounce PROC:<{
+    // 
+    b{01}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _2
+    1 PUSHINT	//  _2 _4=1
+    x{7}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
+    ENDC	//  _2 _4=1 _6
+    32 PUSHPOW2DEC	//  _2 _4=1 _6 _7=4294967295
+    NEWC	//  _2 _4=1 _6 _7=4294967295 _8
+    32 STU	//  _2 _4=1 _6 _10
+    ENDC	//  _2 _4=1 _6 _11
+    CTOS	//  _2 _4=1 _6 _12
+    TRIPLE	//  _2 _3
+    invoke_gas INLINECALLDICT	//  _13
+    DROP	// 
+    parse_c5 CALLDICT	//  _15
+    ISNULL	//  _16
+    150 THROWIFNOT
+    c4 PUSH	//  _19
+    HASHCU	//  _20
+    b{00}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ s>c PUSHREF	//  _20 _21
+    HASHCU	//  _20 _22
+    EQUAL	//  _23
+    151 THROWIFNOT
+  }>
+  __test_job_lockup_worker_stake PROC:<{
+    // 
+    b{01}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _2
+    1 PUSHINT	//  _2 _4=1
+    x{6}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
+    ENDC	//  _2 _4=1 _6
+    173 PUSHINT	//  _2 _4=1 _6 _7=173
+    NEWC	//  _2 _4=1 _6 _7=173 _8
+    32 STU	//  _2 _4=1 _6 _10
+    b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}
+    x{0000000054657374206A6F62} |_
+    <b 20230216 256 u>B priv>pub B, b> <s
+    |+ |+ PUSHSLICE	//  _2 _4=1 _6 _10 _11
+    STSLICER	//  _2 _4=1 _6 _12
+    ENDC	//  _2 _4=1 _6 _13
+    CTOS	//  _2 _4=1 _6 _14
+    TRIPLE	//  _2 _3
+    invoke_gas INLINECALLDICT	//  _15
+    DROP	// 
+    parse_c5 CALLDICT	//  _17
+    ISNULL	//  _18
+    160 THROWIFNOT
+    c4 PUSH	//  _21
+    HASHCU	//  _22
+    b{10}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    <b 20230216 256 u>B priv>pub B, b> <s |+
+    x{233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB} |+ |_
+    |+ |+ |+ |+ |+ s>c PUSHREF	//  _22 _23
+    HASHCU	//  _22 _24
+    EQUAL	//  _25
+    161 THROWIFNOT
+  }>
+  __test_job_work_complete PROC:<{
+    // 
+    b{10}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    <b 20230216 256 u>B priv>pub B, b> <s |+
+    x{233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB} |+ |_
+    |+ |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _2
+    1 PUSHINT	//  _2 _4=1
+    x{6}
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
+    ENDC	//  _2 _4=1 _6
+    proposal_worker INLINECALLDICT	//  _2 _4=1 _6 _7
+    proposal_poster INLINECALLDICT	//  _2 _4=1 _6 _7 _8
+    187 PUSHINT	//  _2 _4=1 _6 _7 _8 _9=187
+    NEWC	//  _2 _4=1 _6 _7 _8 _9=187 _10
+    32 STU	//  _2 _4=1 _6 _7 _8 _12
+    STREF	//  _2 _4=1 _6 _7 _13
+    STREF	//  _2 _4=1 _6 _14
+    ENDC	//  _2 _4=1 _6 _15
+    CTOS	//  _2 _4=1 _6 _16
+    TRIPLE	//  _2 _3
+    invoke_gas INLINECALLDICT	//  _17
+    DROP	// 
+    parse_c5 CALLDICT	//  actions
+    DUP	//  actions actions
+    ISNULL	//  actions _21
+    170 THROWIF
+    TLEN	//  _24
+    2 EQINT	//  _26
+    171 THROWIFNOT
   }>
 }END>c

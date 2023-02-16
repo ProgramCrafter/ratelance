@@ -7,8 +7,10 @@
   
   if (tag != 3) {
     slice key = keys.extract_part(tag * 256, 256);
-    check_data_signature(job::wrap_for_signing(lb, ub),
-                         sig, key.preload_uint(256));
+    throw_unless(198,
+      check_signature(cell_hash(job::wrap_for_signing(lb, ub)),
+                      sig,
+                      key.preload_uint(256)));
   }
   
   return (tag, lb, ub);

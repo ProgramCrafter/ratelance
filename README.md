@@ -85,7 +85,8 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 - `9.`  - Insufficient value to forward. Taking +0.1 TON.  
         - Insufficient money to unplug.  Taking +0.2 TON (total 0.5).
 - `8.`  Insufficient value to process message. Taking +0.2 TON (total 0.7).
-- `7.`  Insufficient money to lock the contract. Taking +0.1 TON (total 0.8).
+- `7.`  - Insufficient money to lock the contract. Taking +0.1 TON (total 0.8).  
+        - Contract does not exist, message bounces.
 - `6.`  Insufficient funds to lock the contract. Taking +0.2 TON (total 1.0).
 - `5.`  &nbsp;&ndash;
 - `4.`  &nbsp;&ndash;

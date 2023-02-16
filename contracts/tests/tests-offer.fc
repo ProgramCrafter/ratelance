@@ -60,25 +60,3 @@ forall F, A -> int invoke_gas(F fun, A args) impure method_id {
   
   throw(100);
 }
-
-{-- optimizing check if cell is empty --}
-
-cell empty_cell()    asm "b{} s>c PUSHREF";
-cell nonempty_cell() asm "b{1} s>c PUSHREF";
-
-int is_nonempty_cdata(cell) asm "TEN CDATASIZE DROP NIP";
-int is_nonempty_parse(cell) asm "CTOS SBITS";
-
-int __test_gas_empty_depth() {
-  return invoke_gas(is_nonempty_cdata, [empty_cell()]);
-}
-int __test_gas_nonempty_depth() {
-  return invoke_gas(is_nonempty_cdata, [nonempty_cell()]);
-}
-
-int __test_gas_empty_parse() {
-  return invoke_gas(is_nonempty_parse, [empty_cell()]);
-}
-int __test_gas_nonempty_parse() {
-  return invoke_gas(is_nonempty_parse, [nonempty_cell()]);
-}

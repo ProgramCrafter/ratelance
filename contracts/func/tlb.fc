@@ -117,15 +117,14 @@ builder job::st_working(builder v, slice poster, slice worker, int value,
 }
 
 ;; CUS-11. Serialized by user.
-slice job::wrap_for_signing(int worker_ton_min, int worker_ton_max) inline {
+cell job::wrap_for_signing(int worker_ton_min, int worker_ton_max) inline {
   return begin_cell()
     .store_slice("FFFF726C3A3A6A6F623A3A7630"s)
     .store_uint(0, 5)
     .store_slice(my_address())
     .store_uint(worker_ton_min, 64)
     .store_uint(worker_ton_max, 64)
-    .end_cell()
-    .begin_parse();
+    .end_cell();
 }
 (int, slice, int, int) job::parse_proposal_with_tag(slice v) impure inline {
   int tag = v~load_uint(2);

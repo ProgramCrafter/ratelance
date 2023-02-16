@@ -455,7 +455,6 @@ PROGRAM{
     64 STU	//  worker_ton_max _11
     64 STU	//  _13
     ENDC	//  _14
-    CTOS	//  _15
   }>
   job::parse_proposal_with_tag PROCINLINE:<{
     //  v
@@ -501,14 +500,30 @@ PROGRAM{
   }>
   parse_proposal_check_sig PROCINLINE:<{
     //  v keys
-    DROP	//  v
-    job::parse_proposal_with_tag INLINECALLDICT	//  _18 _19 _20 _21
-    s2 POP	//  tag ub lb
-    s2 PUSH	//  tag ub lb tag
-    3 NEQINT	//  tag ub lb _8
-    IF:<{	//  tag ub lb
-    }>	//  tag ub lb
-    SWAP	//  tag lb ub
+    SWAP	//  keys v
+    job::parse_proposal_with_tag INLINECALLDICT	//  keys tag sig lb ub
+    s3 PUSH	//  keys tag sig lb ub tag
+    3 NEQINT	//  keys tag sig lb ub _8
+    IF:<{	//  keys tag sig lb ub
+      s3 PUSH	//  keys tag sig lb ub tag
+      8 LSHIFT#	//  keys tag sig lb ub _11
+      s1 s5 XCHG
+      8 PUSHPOW2	//  ub tag sig lb keys _11 _12=256
+      SDSUBSTR	//  ub tag sig lb key
+      s1 s4 PUSH2	//  ub tag sig lb key lb ub
+      job::wrap_for_signing INLINECALLDICT	//  ub tag sig lb key _15
+      HASHCU	//  ub tag sig lb key _16
+      SWAP	//  ub tag sig lb _16 key
+      256 PLDU	//  ub tag sig lb _16 _18
+      s1 s3 s0 XCHG3	//  ub tag lb _16 sig _18
+      CHKSIGNU	//  ub tag lb _19
+      198 THROWIFNOT
+      s0 s2 XCHG	//  lb tag ub
+    }>ELSE<{
+      s2 POP
+      s3 POP	//  lb tag ub
+    }>
+    s1 s2 XCHG	//  tag lb ub
   }>
   get_job_state PROC:<{
     // 
