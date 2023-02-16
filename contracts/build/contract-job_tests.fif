@@ -2431,100 +2431,101 @@ PROGRAM{
     IFRETALT
     SWAP	//  msg_value in_msg_body in_msg
     load_bounced_sender INLINECALLDICT	//  msg_value in_msg_body bounced sender
-    SWAP	//  msg_value in_msg_body sender bounced
-    IFRETALT
-    SWAP	//  msg_value sender in_msg_body
-    32 LDU	//  msg_value sender op in_msg_body
-    c4 PUSH	//  msg_value sender op in_msg_body _16
-    CTOS	//  msg_value sender op in_msg_body own_data
-    2 LDU	//  msg_value sender op in_msg_body tag own_data
-    OVER	//  msg_value sender op in_msg_body tag own_data tag
-    0 EQINT	//  msg_value sender op in_msg_body tag own_data _23
-    IF:<{	//  msg_value sender op in_msg_body tag own_data
-      NIP	//  msg_value sender op in_msg_body own_data
-      s2 PUSH
-      235 PUSHINT	//  msg_value sender op in_msg_body own_data op _24=235
-      EQUAL	//  msg_value sender op in_msg_body own_data _25
-      IF:<{	//  msg_value sender op in_msg_body own_data
-        s4 POP
-        2DROP	//  own_data sender
-        TUCK	//  sender own_data sender
-        SDPFXREV	//  sender _27
+    s0 s2 XCHG	//  msg_value sender bounced in_msg_body
+    32 LDU	//  msg_value sender bounced op in_msg_body
+    c4 PUSH	//  msg_value sender bounced op in_msg_body _15
+    CTOS	//  msg_value sender bounced op in_msg_body own_data
+    2 LDU	//  msg_value sender bounced op in_msg_body tag own_data
+    OVER	//  msg_value sender bounced op in_msg_body tag own_data tag
+    0 EQINT	//  msg_value sender bounced op in_msg_body tag own_data _22
+    IF:<{	//  msg_value sender bounced op in_msg_body tag own_data
+      NIP
+      s3 POP	//  msg_value sender own_data op in_msg_body
+      OVER
+      235 PUSHINT	//  msg_value sender own_data op in_msg_body op _23=235
+      EQUAL	//  msg_value sender own_data op in_msg_body _24
+      IF:<{	//  msg_value sender own_data op in_msg_body
+        2DROP
+        1 2 BLKDROP2
+        OVER	//  sender own_data sender
+        SDPFXREV	//  sender _26
         200 THROWIFNOT
-        mode::destroy_into INLINECALLDICT	//  sender _29
+        mode::destroy_into INLINECALLDICT	//  sender _28
         SWAP
         0 PUSHINT
-        x{4a6f622064657374726f7965642e} PUSHSLICE	//  _29 sender _30=0 _31
+        x{4a6f622064657374726f7965642e} PUSHSLICE	//  _28 sender _29=0 _30
         send_text INLINECALLDICT
         RETALT
-      }>ELSE<{	//  msg_value sender op in_msg_body own_data
-        s0 s2 XCHG
-        172 PUSHINT	//  msg_value sender own_data in_msg_body op _34=172
-        EQUAL	//  msg_value sender own_data in_msg_body _35
+      }>ELSE<{	//  msg_value sender own_data op in_msg_body
+        SWAP
+        172 PUSHINT	//  msg_value sender own_data in_msg_body op _33=172
+        EQUAL	//  msg_value sender own_data in_msg_body _34
         IF:<{	//  msg_value sender own_data in_msg_body
           s1 s2 PUXC	//  msg_value in_msg_body own_data own_data sender
-          SDPFXREV	//  msg_value in_msg_body own_data _37
+          SDPFXREV	//  msg_value in_msg_body own_data _36
           200 THROWIFNOT
           s0 s2 XCHG
-          1000000000 PUSHINT	//  own_data in_msg_body msg_value _40=1000000000
-          LESS	//  own_data in_msg_body _41
+          1000000000 PUSHINT	//  own_data in_msg_body msg_value _39=1000000000
+          LESS	//  own_data in_msg_body _40
           199 THROWIFNOT
           job::ld_msg_lock_on INLINECALLDICT	//  own_data _146 _147
           NIP	//  own_data offer_addr
-          mode::forward_value INLINECALLDICT	//  own_data offer_addr _46
-          0 PUSHINT	//  own_data offer_addr _46 _47=0
-          PUSHNULL	//  own_data offer_addr _46 _47=0 _48
+          mode::forward_value INLINECALLDICT	//  own_data offer_addr _45
+          0 PUSHINT	//  own_data offer_addr _45 _46=0
+          PUSHNULL	//  own_data offer_addr _45 _46=0 _47
           CONT:<{
             job::st_msg_collapse CALLDICT
-          }>	//  own_data offer_addr _46 _47=0 _48 _49
+          }>	//  own_data offer_addr _45 _46=0 _47 _48
           s4 PUSH
-          3 -ROLL	//  own_data offer_addr _46 offer_addr _47=0 _48 _49
+          3 -ROLL	//  own_data offer_addr _45 offer_addr _46=0 _47 _48
           send_to INLINECALLDICT
-          1 PUSHINT	//  own_data offer_addr _51=1
-          NEWC	//  own_data offer_addr _51=1 _52
-          2 STU	//  own_data offer_addr _54
-          s0 s2 XCHG	//  _54 offer_addr own_data
-          job::st_locked INLINECALLDICT	//  _55
-          ENDC	//  _56
+          1 PUSHINT	//  own_data offer_addr _50=1
+          NEWC	//  own_data offer_addr _50=1 _51
+          2 STU	//  own_data offer_addr _53
+          s0 s2 XCHG	//  _53 offer_addr own_data
+          job::st_locked INLINECALLDICT	//  _54
+          ENDC	//  _55
           c4 POP
           RETALT
         }>ELSE<{
           4 BLKDROP	// 
         }>
       }>
-    }>ELSE<{	//  msg_value sender op in_msg_body tag own_data
-      s5 POP	//  own_data sender op in_msg_body tag
-      DUP	//  own_data sender op in_msg_body tag tag
-      1 EQINT	//  own_data sender op in_msg_body tag _60
-      IF:<{	//  own_data sender op in_msg_body tag
-        DROP	//  own_data sender op in_msg_body
+    }>ELSE<{	//  msg_value sender bounced op in_msg_body tag own_data
+      s6 POP	//  own_data sender bounced op in_msg_body tag
+      DUP	//  own_data sender bounced op in_msg_body tag tag
+      1 EQINT	//  own_data sender bounced op in_msg_body tag _59
+      IF:<{	//  own_data sender bounced op in_msg_body tag
+        DROP	//  own_data sender bounced op in_msg_body
         OVER
-        173 PUSHINT	//  own_data sender op in_msg_body op _61=173
-        EQUAL	//  own_data sender op in_msg_body _62
-        IF:<{	//  own_data sender op in_msg_body
-          NIP	//  own_data sender in_msg_body
+        173 PUSHINT	//  own_data sender bounced op in_msg_body op _60=173
+        EQUAL	//  own_data sender bounced op in_msg_body _61
+        IF:<{	//  own_data sender bounced op in_msg_body
+          2 1 BLKDROP2	//  own_data sender in_msg_body
           s0 s2 XCHG	//  in_msg_body sender own_data
           job::ld_locked INLINECALLDICT	//  in_msg_body sender offer poster value poster_desc poster_key
           s4 s5 XCHG2	//  in_msg_body poster_key poster_desc poster value offer sender
-          SDEQ	//  in_msg_body poster_key poster_desc poster value _70
+          SDEQ	//  in_msg_body poster_key poster_desc poster value _69
           200 THROWIFNOT
           s0 s4 XCHG	//  value poster_key poster_desc poster in_msg_body
           job::ld_msg_lock_success INLINECALLDICT	//  value poster_key poster_desc poster worker worker_desc worker_key
-          2 PUSHINT	//  value poster_key poster_desc poster worker worker_desc worker_key _76=2
-          NEWC	//  value poster_key poster_desc poster worker worker_desc worker_key _76=2 _77
-          2 STU	//  value poster_key poster_desc poster worker worker_desc worker_key _79
+          2 PUSHINT	//  value poster_key poster_desc poster worker worker_desc worker_key _75=2
+          NEWC	//  value poster_key poster_desc poster worker worker_desc worker_key _75=2 _76
+          2 STU	//  value poster_key poster_desc poster worker worker_desc worker_key _78
           s0 s7 XCHG
           s4 s6 XCHG
           s3 s5 XCHG
-          s4 s4 XCHG2	//  _79 poster worker value poster_desc worker_desc poster_key worker_key
-          job::st_working INLINECALLDICT	//  _80
-          ENDC	//  _81
+          s4 s4 XCHG2	//  _78 poster worker value poster_desc worker_desc poster_key worker_key
+          job::st_working INLINECALLDICT	//  _79
+          ENDC	//  _80
           c4 POP
           RETALT
-        }>ELSE<{	//  own_data sender op in_msg_body
-          DROP	//  own_data sender op
-          212 PUSHINT	//  own_data sender op _84=212
-          EQUAL	//  own_data sender _85
+        }>ELSE<{	//  own_data sender bounced op in_msg_body
+          DROP	//  own_data sender bounced op
+          212 PUSHINT	//  own_data sender bounced op _83=212
+          EQUAL	//  own_data sender bounced _84
+          SWAP	//  own_data sender _84 bounced
+          OR	//  own_data sender _85
           IF:<{	//  own_data sender
             SWAP	//  sender own_data
             LDMSGADDR	//  sender _87 own_data
@@ -2543,9 +2544,10 @@ PROGRAM{
             2DROP	// 
           }>
         }>
-      }>ELSE<{	//  own_data sender op in_msg_body tag
-        s3 POP	//  own_data tag op in_msg_body
-        s0 s2 XCHG	//  own_data in_msg_body op tag
+      }>ELSE<{	//  own_data sender bounced op in_msg_body tag
+        s3 POP
+        s3 POP	//  own_data in_msg_body tag op
+        SWAP	//  own_data in_msg_body op tag
         2 EQINT	//  own_data in_msg_body op _100
         IF:<{	//  own_data in_msg_body op
           187 PUSHINT	//  own_data in_msg_body op _101=187

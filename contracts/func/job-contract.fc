@@ -50,6 +50,7 @@ slice get_job_poster() method_id {
 ;; CUS-1,2-REV.     poster      op::cancel_job
 ;; CUS-4.           offer       [insufficient value to even notice it]
 ;; CUS-5.           poster      op::lock_on_offer
+;; CUS-7-ERR.       offer       op::refuse_collapse [bounced]
 ;; CUS-9-OK.        offer       op::lock_success
 ;; CUS-9-ERR.       offer       op::lock_failed
 ;; CUS-12.          anyone      op::finish_job
@@ -58,7 +59,6 @@ slice get_job_poster() method_id {
   terminate_if(in_msg_body.slice_bits() < 32);
   
   (int bounced, slice sender) = in_msg.load_bounced_sender();
-  terminate_if(bounced);
   
   int op = in_msg_body~load_uint(32);
   
@@ -99,7 +99,7 @@ slice get_job_poster() method_id {
                          poster_key, worker_key)
         .end_cell());
       terminate();
-    } elseif (op == op::lock_failed) {
+    } elseif ((op == op::lock_failed) | bounced) {
       ;; throw_unless(200, own_data.starts_with(sender));
       throw_unless(200, equal_slices(sender, own_data~load_msg_addr()));
       set_data(begin_cell()

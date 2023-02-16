@@ -132,6 +132,9 @@ take_stake#706c7567 query_id:uint64 stake:(VarUInteger 16) ext:hme_empty
 offer_locked$01   job:MsgAddressInt worker:MsgAddressInt stake:uint64 desc:^Cell
                   worker_key:uint256 short_job_hash:uint160 = OfferContractData;
 
+// CUS-7-ERR. Offer contract specified by job poster does not exist.
+refuse_collapse#ffffffff [000000B1]:uint32 ... = InternalMsgBody;
+
 // CUS-8-OK. Wallet returns the money.
 give_stake#f06c7567 query_id:uint64 = InternalMsgBody;
 
