@@ -15,6 +15,7 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 ## Contact us
 
 - Read latest news: https://t.me/ratelance
+- Vote for us in Hack-a-TONx: https://dorahacks.io/buidl/4227
 - Propose something, report a bug, etc: [issues](https://github.com/ProgramCrafter/ratelance/issues)
 
 ## Current state
