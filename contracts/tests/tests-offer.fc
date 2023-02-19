@@ -1,4 +1,4 @@
-forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure asm
+forall F, A, R -> (int, int, R) gas::invoke_nowrap(F fun, A args) impure asm
   "{"                                ;; <- this function saves gas-remaining to 11-th element of c7's config
     "c7 PUSH DUP FIRST"              ;; (c7, config)
     "GASLIMITSTEMP SWAP DROP"        ;; (c7, config, gas_remaining)
@@ -15,12 +15,24 @@ forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure as
     "145 PUSHINT SUB"
   "} : compute-gas-used"
 
+  "c7 PUSH DUP FIRST c0 PUSH"        ;; (fun, args, c7, config, c0)
+  "12 SETINDEXQ 0 SETINDEX"          ;; (fun, args, c7)
+  "c7 POP"                           ;; (fun, args)
+  
   "NEWC ENDC c5 POP"                 ;; clear actions cell
   "RESETLOADEDCELLS"                 ;; <- make sure first cell load cost 100 gas, not 25
   "255 PUSHINT EXPLODEVAR"           ;; (fun, arg_1, arg_2, ..., arg_n, n)
   "DUP INC ROLLX"                    ;; (arg_1, arg_2, ..., arg_n, n, fun)
   "<{"
     "<{"                             ;; <- normal execution
+      "<{"
+        "compute-gas-used"           ;; <- execution terminated via jump to c1
+        "DEPTH DEC ROLLREVX"
+        "DEPTH DEC TUPLEVAR"
+        "ZERO ROTREV"                ;; (exit_code, gas_used, [res...])
+        "c7 PUSH FIRST 12 INDEX"     ;; (exit_code, gas_used, [res...], ret_to)
+        "JMPX"
+      "}> PUSHCONT SWAP c1 SETCONTCTR"
       "save-gas-remaining"
       "EXECUTE"
       "compute-gas-used"             ;; <- it is important to call it just after EXECUTE, so we don't count additional commands
@@ -38,6 +50,11 @@ forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure as
   "CALLXVARARGS"                     ;; (exit_code, gas_used, [res..])
 ;
 
+forall F, A, R -> (int, int, R) gas::invoke_method_full(F fun, A args) impure {
+  ;; no inlining
+  return gas::invoke_nowrap(fun, args);
+}
+
 forall F, A, R -> (int, R) gas::invoke_method(F fun, A args) impure method_id {
   (int exit_code, int gas_used, R return_values) = gas::invoke_method_full(fun, args);
   throw_if(exit_code, (exit_code != 0) & (exit_code != 1));
@@ -54,9 +71,107 @@ forall F, A -> int invoke_gas(F fun, A args) impure method_id {
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+slice job_addr() asm
+  "b{100} x{00227e0ff3501e47609d3cf76dfb6485252be873632f4b479fb86dc5d65dc3ffb0}"
+    "|+ PUSHSLICE";
+builder build_job_pfx() asm
+  "x{6}"
+  "b{100} x{00227e0ff3501e47609d3cf76dfb6485252be873632f4b479fb86dc5d65dc3ffb0}"
+  "b{00}"
+  "|+ |+ |+ PUSHSLICE NEWC STSLICE";
 
-() __test_indicate_todo() {
-  ~dump(4445); ~dump("TODO: tests"u);
+builder build_worker_pfx() asm
+  "x{6}"
+  "b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}"
+  "b{00}"
+  "|+ |+ |+ PUSHSLICE NEWC STSLICE";
+builder build_worker_pfx_bounced() asm
+  "x{7}"
+  "b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}"
+  "b{00}"
+  "|+ |+ |+ PUSHSLICE NEWC STSLICE";
+
+cell init_offer() asm
+  "b{00}"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "x{000000003b9aca00}"
+  "x{0000000054657374206A6F62} |_"
+  "<b 20230215 256 u>B priv>pub B, b> <s"
+  "|+ |+ |+ |+ s>c hash 1 160 << 1- and  // job hash"
+cell init_offer_locked() asm
+  "b{01}"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "x{000000003b9aca00}"
+  "x{0000000054657374206A6F62} |_"
+  "<b 20230215 256 u>B priv>pub B, b> <s"
+  "|+ |+ |+ |+ s>c hash 1 160 << 1- and  // job hash"
   
-  throw(100);
+  "<b"
+  "b{00} s,"
+  "b{100} x{00227e0ff3501e47609d3cf76dfb6485252be873632f4b479fb86dc5d65dc3ffb0}"
+    "|+ s,"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+    "|+ s,"
+  "1100000000 64 u,"
+  "<b 0 32 u, 97 8 u, b> ref,"
+  "20230216 256 u>B priv>pub B,"
+  "swap 160 u,"
+  "b> PUSHREF";
+
+() __test_offer_init_success() {
+  set_data(init_offer());
+  invoke_gas(recv_internal, [50000000, build_worker_pfx().end_cell(),
+      begin_cell().end_cell().begin_parse()]);
+  throw_unless(110, cell_hash(get_data()) == cell_hash(init_offer()));
+}
+
+() __test_offer_plugin_destroy() {
+  set_data(init_offer());
+  invoke_gas(recv_internal, [1, build_worker_pfx().end_cell(),
+      begin_cell().store_uint(op::destruct, 32).end_cell().begin_parse()]);
+  
+  tuple actions = parse_c5();
+  throw_if(120, is_null(actions));
+  throw_unless(121, tuple_length(actions) == 1);
+  throw_unless(122, first(first(actions)) == 0);
+  throw_unless(123, third(first(actions)) == 128);
+}
+
+() __test_offer_collapse_initiates() {
+  set_data(init_offer());
+  invoke_gas(recv_internal, [1, build_job_pfx().end_cell(),
+      begin_cell().store_uint(op::collapse, 32).end_cell().begin_parse()]);
+  
+  tuple actions = parse_c5();
+  throw_if(130, is_null(actions));
+  throw_unless(131, tuple_length(actions) == 1);
+  throw_unless(132, first(first(actions)) == 0);
+  throw_unless(133, third(first(actions)) == 64);
+  throw_unless(134, cell_hash(get_data()) == cell_hash(init_offer_locked()));
+}
+
+() __test_offer_collapse_rejection_handled() {
+  set_data(init_offer_locked());
+  invoke_gas(recv_internal, [1, build_worker_pfx_bounced().end_cell(),
+      begin_cell().store_uint(0xFFFFFFFF, 32).end_cell().begin_parse()]);
+  
+  tuple actions = parse_c5();
+  throw_if(140, is_null(actions));
+  throw_unless(141, tuple_length(actions) == 1);
+  throw_unless(142, first(first(actions)) == 0);
+  throw_unless(143, third(first(actions)) == 64);
+  throw_unless(144, cell_hash(get_data()) == cell_hash(init_offer()));
+}
+
+() __test_offer_collapse_completion() {
+  set_data(init_offer_locked());
+  invoke_gas(recv_internal, [1, build_worker_pfx().end_cell(),
+      begin_cell().store_uint(op::payment_ok, 32).end_cell().begin_parse()]);
+  
+  tuple actions = parse_c5();
+  throw_if(150, is_null(actions));
+  throw_unless(151, tuple_length(actions) == 1);
+  throw_unless(152, first(first(actions)) == 0);
+  throw_unless(153, third(first(actions)) == 128);
+  throw_unless(154, cell_hash(get_data()) == cell_hash(init_offer_locked()));
 }
