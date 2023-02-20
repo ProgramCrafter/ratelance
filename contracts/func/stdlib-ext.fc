@@ -1,5 +1,5 @@
 (builder, ()) ~store_slice(builder, slice) asm "STSLICER";
-(builder, ()) ~store_coins(builder a, int b) asm(b a) "STGRAMS";
+(builder, ()) ~store_coins(builder a, int b) asm "STGRAMS";
 (builder, ()) ~store_ref(builder, cell) asm "STREFR";
 
 (slice, int) dict_get?(cell dict, int key_len, slice index)

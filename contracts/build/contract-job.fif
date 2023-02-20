@@ -345,6 +345,7 @@ PROGRAM{
     LTIME	//  stake v _7
     SWAP	//  stake _7 v
     64 STU	//  stake v
+    SWAP	//  v stake
     STGRAMS	//  v
     0 PUSHINT	//  v _13=0
     SWAP	//  _13=0 v
@@ -617,7 +618,7 @@ PROGRAM{
           200 THROWIFNOT
           s0 s2 XCHG
           1000000000 PUSHINT	//  own_data in_msg_body msg_value _39=1000000000
-          LESS	//  own_data in_msg_body _40
+          GEQ	//  own_data in_msg_body _40
           199 THROWIFNOT
           job::ld_msg_lock_on INLINECALLDICT	//  own_data _146 _147
           NIP	//  own_data offer_addr

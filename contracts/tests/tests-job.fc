@@ -192,7 +192,7 @@ cell proposal_worker() inline {
 
 () __test_job_lock_success() {
   set_data(init_job());
-  invoke_gas(recv_internal, [1, build_poster_pfx().end_cell(),
+  invoke_gas(recv_internal, [1000000000, build_poster_pfx().end_cell(),
       begin_cell()
      .store_uint(op::lock_on_offer, 32)
      .store_ref(begin_cell().end_cell())
@@ -207,6 +207,19 @@ cell proposal_worker() inline {
   throw_unless(133, third(first(actions)) == 64);
   
   throw_unless(134, cell_hash(get_data()) == cell_hash(init_job_locked()));
+}
+
+() __test_job_lock_insufficient_funds() {
+  set_data(init_job());
+  (int exit_code, _, _) = gas::invoke_method_full(recv_internal, [999999999,
+    build_poster_pfx().end_cell(),
+      begin_cell()
+     .store_uint(op::lock_on_offer, 32)
+     .store_ref(begin_cell().end_cell())
+     .store_slice(offer_addr())
+     .end_cell()
+     .begin_parse()]);
+  throw_unless(135, exit_code > 1);
 }
 
 () __test_job_unlock_on_failure() {

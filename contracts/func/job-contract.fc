@@ -72,7 +72,7 @@ slice get_job_poster() method_id {
       terminate();
     } elseif (op == op::lock_on_offer) {
       throw_unless(200, own_data.starts_with(sender));
-      throw_unless(199, msg_value < TON);    ;; this will be returned eventually
+      throw_unless(199, msg_value >= TON);   ;; this will be returned eventually
       
       (_, slice offer_addr) = job::ld_msg_lock_on(in_msg_body);
       send_to(mode::forward_value(), offer_addr, 0, null(),

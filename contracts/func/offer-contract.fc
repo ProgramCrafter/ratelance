@@ -34,7 +34,7 @@
       throw_unless(200, equal_slices(job, sender));
       throw_unless(200, offer::ld_msg_collapse(in_msg_body) == job_hash);
       
-      send_to_rbounceable(mode::forward_value(), true, worker, 0, stake,
+      send_to_rbounceable(mode::forward_value(), 1, worker, 0, stake,
                           offer::st_msg_take_stake);
       set_data(begin_cell()
         .store_uint(offer::tag::locked, 2)
@@ -43,6 +43,7 @@
       terminate();
     }
   } elseif (tag == offer::tag::locked) {
+    slice full_own_data = own_data;
     slice job = own_data~load_msg_addr();
     slice worker = own_data~load_msg_addr();
     
@@ -52,7 +53,7 @@
       send_to(mode::forward_value(), job, 0, null(), offer::st_msg_lock_failed);
       set_data(begin_cell()
         .store_uint(offer::tag::unlocked, 2)
-        .store_slice(own_data)
+        .store_slice(full_own_data)
         .end_cell());
       terminate();
     } elseif (op == op::payment_ok) {
