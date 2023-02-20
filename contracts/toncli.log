@@ -1,23 +1,31 @@
 #DEBUG#: s0 = CS{Cell{004077ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980} bits: 0..256; refs: 0..0}
-[ 3][t 0][2023-02-16 16:17:48.3683169][vm.cpp:558]	steps: 14 gas: used=1711, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-16 16:17:48.3685376][vm.cpp:558]	steps: 102 gas: used=6178, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-16 16:17:48.3686165][vm.cpp:558]	steps: 237 gas: used=11978, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-16 16:17:48.3686872][vm.cpp:558]	steps: 305 gas: used=16142, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-16 16:17:48.3687365][vm.cpp:558]	steps: 177 gas: used=9505, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-16 16:17:48.3687814][vm.cpp:558]	steps: 177 gas: used=9497, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-16 16:17:48.3688298][vm.cpp:558]	steps: 204 gas: used=10929, max=1000000000, limit=1000000000, credit=0
-[ 3][t 0][2023-02-16 16:17:48.3690469][vm.cpp:558]	steps: 453 gas: used=21264, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8192444][vm.cpp:558]	steps: 14 gas: used=1711, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8194626][vm.cpp:558]	steps: 102 gas: used=6178, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8195416][vm.cpp:558]	steps: 237 gas: used=11978, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8196127][vm.cpp:558]	steps: 305 gas: used=16147, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8196559][vm.cpp:558]	steps: 128 gas: used=7777, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8197009][vm.cpp:558]	steps: 177 gas: used=9505, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8197438][vm.cpp:558]	steps: 177 gas: used=9497, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8197936][vm.cpp:558]	steps: 204 gas: used=11029, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8200109][vm.cpp:558]	steps: 453 gas: used=21264, max=1000000000, limit=1000000000, credit=0
 INFO: Test [[32m__test_output_address[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m1711[0m]
 INFO: Test [[32m__test_job_init_success[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m6178[0m]
 INFO: Test [[32m__test_job_revoke_success[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m11978[0m]
-INFO: Test [[32m__test_job_lock_success[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m16142[0m]
+INFO: Test [[32m__test_job_lock_success[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m16147[0m]
+INFO: Test [[32m__test_job_lock_insufficient_funds[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m7777[0m]
 INFO: Test [[32m__test_job_unlock_on_failure[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m9505[0m]
 INFO: Test [[32m__test_job_unlock_on_bounce[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m9497[0m]
-INFO: Test [[32m__test_job_lockup_worker_stake[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m10929[0m]
+INFO: Test [[32m__test_job_lockup_worker_stake[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m11029[0m]
 INFO: Test [[32m__test_job_work_complete[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m21264[0m]
 
-#DEBUG#: s0 = 4445
-#DEBUG#: s0 = 101924095887283726832596083
-[ 3][t 0][2023-02-16 16:17:48.3997020][vm.cpp:558]	steps: 10 gas: used=715, max=1000000000, limit=1000000000, credit=0
-INFO: Test [[32m__test_indicate_todo[0m] status: [[31mFAIL[0m], code: [[36m100[0m] Total gas used (including testing code): [[32m715[0m]
+[ 3][t 0][2023-02-20 17:56:44.8554560][vm.cpp:558]	steps: 107 gas: used=6660, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8555799][vm.cpp:558]	steps: 251 gas: used=12855, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8556518][vm.cpp:558]	steps: 312 gas: used=16263, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8557139][vm.cpp:558]	steps: 285 gas: used=15267, max=1000000000, limit=1000000000, credit=0
+[ 3][t 0][2023-02-20 17:56:44.8557747][vm.cpp:558]	steps: 298 gas: used=14965, max=1000000000, limit=1000000000, credit=0
+INFO: Test [[32m__test_offer_init_success[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m6660[0m]
+INFO: Test [[32m__test_offer_plugin_destroy[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m12855[0m]
+INFO: Test [[32m__test_offer_collapse_initiates[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m16263[0m]
+INFO: Test [[32m__test_offer_collapse_rejection_handled[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m15267[0m]
+INFO: Test [[32m__test_offer_collapse_completion[0m] status: [[32mSUCCESS[0m] Test result: [[32m[][0m] Total gas used (including testing code): [[32m14965[0m]
 

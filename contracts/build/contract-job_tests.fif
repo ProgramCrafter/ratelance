@@ -107,6 +107,7 @@ PROGRAM{
   DECLPROC __test_job_init_success
   DECLPROC __test_job_revoke_success
   DECLPROC __test_job_lock_success
+  DECLPROC __test_job_lock_insufficient_funds
   DECLPROC __test_job_unlock_on_failure
   DECLPROC __test_job_unlock_on_bounce
   DECLPROC __test_job_lockup_worker_stake
@@ -2194,6 +2195,7 @@ PROGRAM{
     LTIME	//  stake v _7
     SWAP	//  stake _7 v
     64 STU	//  stake v
+    SWAP	//  v stake
     STGRAMS	//  v
     0 PUSHINT	//  v _13=0
     SWAP	//  _13=0 v
@@ -2466,7 +2468,7 @@ PROGRAM{
           200 THROWIFNOT
           s0 s2 XCHG
           1000000000 PUSHINT	//  own_data in_msg_body msg_value _39=1000000000
-          LESS	//  own_data in_msg_body _40
+          GEQ	//  own_data in_msg_body _40
           199 THROWIFNOT
           job::ld_msg_lock_on INLINECALLDICT	//  own_data _146 _147
           NIP	//  own_data offer_addr
@@ -2804,23 +2806,23 @@ PROGRAM{
     CONT:<{
       recv_internal CALLDICT
     }>	//  _2
-    1 PUSHINT	//  _2 _4=1
+    1000000000 PUSHINT	//  _2 _4=1000000000
     x{6}
     b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
     b{00}
-    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1 _5
-    ENDC	//  _2 _4=1 _6
-    NEWC	//  _2 _4=1 _6 _7
-    ENDC	//  _2 _4=1 _6 _8
-    172 PUSHINT	//  _2 _4=1 _6 _8 _9=172
-    NEWC	//  _2 _4=1 _6 _8 _9=172 _10
-    32 STU	//  _2 _4=1 _6 _8 _12
-    STREF	//  _2 _4=1 _6 _13
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _2 _4=1000000000 _5
+    ENDC	//  _2 _4=1000000000 _6
+    NEWC	//  _2 _4=1000000000 _6 _7
+    ENDC	//  _2 _4=1000000000 _6 _8
+    172 PUSHINT	//  _2 _4=1000000000 _6 _8 _9=172
+    NEWC	//  _2 _4=1000000000 _6 _8 _9=172 _10
+    32 STU	//  _2 _4=1000000000 _6 _8 _12
+    STREF	//  _2 _4=1000000000 _6 _13
     b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
-    |+ PUSHSLICE	//  _2 _4=1 _6 _13 _14
-    STSLICER	//  _2 _4=1 _6 _15
-    ENDC	//  _2 _4=1 _6 _16
-    CTOS	//  _2 _4=1 _6 _17
+    |+ PUSHSLICE	//  _2 _4=1000000000 _6 _13 _14
+    STSLICER	//  _2 _4=1000000000 _6 _15
+    ENDC	//  _2 _4=1000000000 _6 _16
+    CTOS	//  _2 _4=1000000000 _6 _17
     TRIPLE	//  _2 _3
     invoke_gas INLINECALLDICT	//  _18
     DROP	// 
@@ -2853,6 +2855,41 @@ PROGRAM{
     HASHCU	//  _43 _45
     EQUAL	//  _46
     134 THROWIFNOT
+  }>
+  __test_job_lock_insufficient_funds PROC:<{
+    // 
+    b{00}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    x{000000003b9aca00}
+    x{0000000054657374206A6F62} |_
+    <b 20230215 256 u>B priv>pub B, b> <s
+    |+ |+ |+ |+ s>c PUSHREF	//  _0
+    c4 POP
+    CONT:<{
+      recv_internal CALLDICT
+    }>	//  _5
+    999999999 PUSHINT	//  _5 _7=999999999
+    x{6}
+    b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}
+    b{00}
+    |+ |+ |+ PUSHSLICE NEWC STSLICE	//  _5 _7=999999999 _8
+    ENDC	//  _5 _7=999999999 _9
+    NEWC	//  _5 _7=999999999 _9 _10
+    ENDC	//  _5 _7=999999999 _9 _11
+    172 PUSHINT	//  _5 _7=999999999 _9 _11 _12=172
+    NEWC	//  _5 _7=999999999 _9 _11 _12=172 _13
+    32 STU	//  _5 _7=999999999 _9 _11 _15
+    STREF	//  _5 _7=999999999 _9 _16
+    b{100} x{007da879d948524500877828304cfbdb4c43085f57c9fc49cc9fdfe6dc3bd1b490}
+    |+ PUSHSLICE	//  _5 _7=999999999 _9 _16 _17
+    STSLICER	//  _5 _7=999999999 _9 _18
+    ENDC	//  _5 _7=999999999 _9 _19
+    CTOS	//  _5 _7=999999999 _9 _20
+    TRIPLE	//  _5 _6
+    gas::invoke_method_full CALLDICT	//  _26 _27 _28
+    2DROP	//  exit_code
+    1 GTINT	//  _24
+    135 THROWIFNOT
   }>
   __test_job_unlock_on_failure PROC:<{
     // 

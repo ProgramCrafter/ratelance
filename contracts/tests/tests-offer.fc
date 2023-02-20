@@ -71,6 +71,20 @@ forall F, A -> int invoke_gas(F fun, A args) impure method_id {
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+() __fift_init() impure method_id asm
+  "{"
+  "b{00}"
+  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "x{000000003b9aca00}"
+  "x{0000000054657374206A6F62} |_"
+  "<b 20230215 256 u>B priv>pub B, b> <s"
+  "|+ |+ |+ |+ s>c hash 1 160 << 1- and  // job hash"
+  "} : job-hash";
+
+() __check_fift_init() impure method_id {
+  return __fift_init();
+}
+
 slice job_addr() asm
   "b{100} x{00227e0ff3501e47609d3cf76dfb6485252be873632f4b479fb86dc5d65dc3ffb0}"
     "|+ PUSHSLICE";
@@ -82,40 +96,39 @@ builder build_job_pfx() asm
 
 builder build_worker_pfx() asm
   "x{6}"
-  "b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}"
+  "b{100} x{0077ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}"
   "b{00}"
   "|+ |+ |+ PUSHSLICE NEWC STSLICE";
 builder build_worker_pfx_bounced() asm
   "x{7}"
-  "b{100} x{008be1e8c90f9d4f44895721ab629051a8ae6e345730d84ca9a7d403abbf563897}"
+  "b{100} x{0077ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}"
   "b{00}"
   "|+ |+ |+ PUSHSLICE NEWC STSLICE";
 
+int job_hash() asm "job-hash PUSHINT";
 cell init_offer() asm
-  "b{00}"
-  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
-  "x{000000003b9aca00}"
-  "x{0000000054657374206A6F62} |_"
-  "<b 20230215 256 u>B priv>pub B, b> <s"
-  "|+ |+ |+ |+ s>c hash 1 160 << 1- and  // job hash"
-cell init_offer_locked() asm
-  "b{01}"
-  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
-  "x{000000003b9aca00}"
-  "x{0000000054657374206A6F62} |_"
-  "<b 20230215 256 u>B priv>pub B, b> <s"
-  "|+ |+ |+ |+ s>c hash 1 160 << 1- and  // job hash"
-  
   "<b"
   "b{00} s,"
   "b{100} x{00227e0ff3501e47609d3cf76dfb6485252be873632f4b479fb86dc5d65dc3ffb0}"
     "|+ s,"
-  "b{100} x{003b819131c4c44a0caa0aefe707735ecca910875fe4c948a88c39be0edbf5d204}"
+  "b{100} x{0077ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}"
     "|+ s,"
   "1100000000 64 u,"
   "<b 0 32 u, 97 8 u, b> ref,"
   "20230216 256 u>B priv>pub B,"
-  "swap 160 u,"
+  "job-hash 160 u,"
+  "b> PUSHREF";
+cell init_offer_locked() asm
+  "<b"
+  "b{01} s,"
+  "b{100} x{00227e0ff3501e47609d3cf76dfb6485252be873632f4b479fb86dc5d65dc3ffb0}"
+    "|+ s,"
+  "b{100} x{0077ebf11f623158315f29fdcc52617eb56c0d0567807ae5934de8bf08358fb980}"
+    "|+ s,"
+  "1100000000 64 u,"
+  "<b 0 32 u, 97 8 u, b> ref,"
+  "20230216 256 u>B priv>pub B,"
+  "job-hash 160 u,"
   "b> PUSHREF";
 
 () __test_offer_init_success() {
@@ -140,7 +153,11 @@ cell init_offer_locked() asm
 () __test_offer_collapse_initiates() {
   set_data(init_offer());
   invoke_gas(recv_internal, [1, build_job_pfx().end_cell(),
-      begin_cell().store_uint(op::collapse, 32).end_cell().begin_parse()]);
+      begin_cell()
+     .store_uint(op::collapse, 32)
+     .store_uint(job_hash(), 160)
+     .end_cell()
+     .begin_parse()]);
   
   tuple actions = parse_c5();
   throw_if(130, is_null(actions));
