@@ -2,3 +2,5 @@
 Disasm.fif
 
 seed.pk
+__pycache__
+*.pyc
