@@ -1,5 +1,6 @@
-from colors import nh, h, nb, b, ns, s
+from keyring import Keyring, process_keyring_cmd
 from about import PROMPT_SINGLE, PROMPT, ABOUT
+from colors import nh, h, nb, b, ns, s
 
 import traceback
 import os
@@ -7,6 +8,8 @@ import os
 
 
 def main():
+  keys = Keyring()
+  
   while True:
     print(PROMPT_SINGLE)
     
@@ -16,16 +19,19 @@ def main():
     except KeyboardInterrupt:
       command = 'q'
     
-    if not command:
-      pass
-    elif command == 'h':
-      print(ABOUT)
-    elif command == 'q':
-      break
-    elif command == 'kl':
-      print(f'Keyring: {len([])} keys')
-    else:
-      print(f'{b}not implemented:{nb} {repr(command)}')
+    try:
+      if not command:
+        pass
+      elif command == 'h':
+        print(ABOUT)
+      elif command == 'q':
+        break
+      elif command[0] == 'k':
+        with keys: process_keyring_cmd(command, keys)
+      else:
+        print(f'{b}not implemented:{nb} {repr(command)}')
+    except KeyboardInterrupt:
+      print(f'{nb}\noperation cancelled')
     
     print()
 

@@ -20,9 +20,11 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 
 ## Current state
 
-- `contracts`
-  - currently: platform contracts with unit tests
-  - coming soon: CLI app for using the system
+- `contracts` :white_check_mark:
+  - platform contracts with unit tests
+- `cli`
+  - currently: keys storage
+  - working on: application for interacting with contracts and deploying new
 - `freelance-highlevel.idr`
   - [x] High-level contracts representation
   - [x] Transaction loop implementation
