@@ -20,6 +20,9 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 
 ## Current state
 
+- `contracts`
+  - currently: platform contracts with unit tests
+  - coming soon: CLI app for using the system
 - `freelance-highlevel.idr`
   - [x] High-level contracts representation
   - [x] Transaction loop implementation
@@ -35,9 +38,6 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
   - [ ] Job contract theorems' proofs
   - [ ] Worker (offer) contract theorems
   - [ ] Worker (offer) contract theorems' proofs
-- `contracts`
-  - currently: test plugin for wallet
-  - coming soon: platform contracts
 
 ## Algorithm described in detail
 
