@@ -1,9 +1,15 @@
 from keyring import Keyring, process_keyring_cmd
 from about import PROMPT_SINGLE, PROMPT, ABOUT
-from colors import nh, h, nb, b, ns, s
+from signing import sign_for_sending
+from colors import b, nb
 
 import traceback
 import os
+
+from tonsdk.utils import Address
+from tonsdk.boc import Cell
+from base64 import b64encode
+import requests
 
 
 
@@ -26,6 +32,15 @@ def main():
         print(ABOUT)
       elif command == 'q':
         break
+      elif command == 'd':
+        dest = 'EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7'
+        payload = Cell()
+        signed = sign_for_sending(payload, Address(dest), None,
+                                  5*10**7, 'donate')
+        if signed:
+          requests.post('https://tonapi.io/v1/send/boc', json={
+            'boc': b64encode(signed.to_boc(False)).decode('ascii')
+          })
       elif command[0] == 'k':
         with keys: process_keyring_cmd(command, keys)
       else:
@@ -33,10 +48,13 @@ def main():
     except KeyboardInterrupt:
       print(f'{nb}\noperation cancelled')
     
-    print()
+    print('\n')
 
 try:
   os.system('')
+  
+  
+  
   main()
 except:
   traceback.print_exc()

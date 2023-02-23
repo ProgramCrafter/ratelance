@@ -7,7 +7,7 @@ import hashlib
 import time
 import os
 
-import nacl.public
+import nacl.signing
 import nacl.secret
 
 
@@ -51,32 +51,32 @@ class Keyring:
   def parse_keys_from(self, file):
     for line in file:
       version, public_key, secret_key, name = line.strip().split(' ', 3)
-      assert version == 'v0.0.1'
-      assert public_key.startswith('pub:ed25519:')
-      assert secret_key.startswith('prv:ed25519:')
+      assert version == 'v0.0.2'
+      assert public_key.startswith('pub:ed25519:vk:')
+      assert secret_key.startswith('prv:ed25519:sk:')
       
       key_id = hashlib.sha256(secret_key.encode('ascii')).hexdigest()[::8]
       
       self.keys_info[key_id] = {
-        'public': b16decode(public_key.removeprefix('pub:ed25519:')),
-        'secret': b16decode(secret_key.removeprefix('prv:ed25519:')),
+        'public': b16decode(public_key.removeprefix('pub:ed25519:vk:')),
+        'secret': b16decode(secret_key.removeprefix('prv:ed25519:sk:')),
         'key_id': key_id,
         'name':   name
       }
   
   def write_keys_to(self, file):
     for (key_id, key_info) in self.keys_info.items():
-      public_key = 'pub:ed25519:' + b16encode(key_info['public'])
-      secret_key = 'prv:ed25519:' + b16encode(key_info['secret'])
+      public_key = 'pub:ed25519:vk:' + b16encode(key_info['public'])
+      secret_key = 'prv:ed25519:sk:' + b16encode(key_info['secret'])
       
-      print('v0.0.1', public_key, secret_key, key_info['name'],
+      print('v0.0.2', public_key, secret_key, key_info['name'],
             file=file, flush=True)
   
   def add_key(self, secret_bytes, name):
-    secret_key_obj = nacl.public.PrivateKey(secret_bytes)
-    public_bytes = secret_key_obj.public_key.encode()
+    secret_key_obj = nacl.signing.SigningKey(secret_bytes)
+    public_bytes = secret_key_obj.verify_key.encode()
     
-    secret_key_armored = 'prv:ed25519:' + b16encode(secret_bytes)
+    secret_key_armored = 'prv:ed25519:sk:' + b16encode(secret_bytes)
     key_id = hashlib.sha256(secret_key_armored.encode('ascii')).hexdigest()[::8]
     
     self.keys_info[key_id] = {
