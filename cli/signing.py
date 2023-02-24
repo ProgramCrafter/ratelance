@@ -3,11 +3,12 @@ from colors import nh, h, nb, b, ns, s
 from base64 import b16decode, b64encode, urlsafe_b64encode
 from getpass import getpass
 
-import tonsdk.contract.wallet
+from tonsdk.contract.wallet import Wallets
+from tonsdk.contract import Contract
+from tonsdk.utils import Address
+from tonsdk.boc import Cell
 import tonsdk.crypto
-import tonsdk.utils
 import nacl.signing
-import tonsdk.boc
 
 # TODO: move `requests` out of functions/modules where secret keys are accessed
 import requests
@@ -54,33 +55,60 @@ def retrieve_auth_wallet(auth_way: str, plugin_only=False):
   WALLET_PROMPT = 'Enter wallet version (' + b + '/'.join(WALLET_V) + nb + '): '
   while (wallet_ver := input(WALLET_PROMPT).lower()) not in WALLET_V: pass
   
-  wallet_class = tonsdk.contract.wallet.Wallets.ALL[wallet_ver]
+  wallet_class = Wallets.ALL[wallet_ver]
   return wallet_class(public_key=public_key, private_key=secret_key)
 
 
-def sign_for_sending(message: tonsdk.boc.Cell,
-                     dest: tonsdk.utils.Address,
-                     state_init: tonsdk.boc.Cell,
-                     value_nton: int,
-                     description: str) -> tonsdk.boc.Cell:
-  print(f'{h}Attempting to send{nh}', repr(description))
-  print(f'{h}Destination:{nh}', dest.to_string(True, True, True))
-  print(f'{h}TON amount: {nh}', value_nton / 1e9)
-  print(f'{h}Message BOC:{nh}', b64encode(message.to_boc(False)).decode('ascii'))
+# orders: list[tuple[to_addr, state_init, payload, amount]]
+def sign_multitransfer_body(wallet: Contract, seqno: int,
+                            orders: list[tuple[Address,Cell,Cell,int]]) -> Cell:
+  assert len(orders) <= 4
+  
+  send_mode = 3
+  signing_message = wallet.create_signing_message(seqno)
+  
+  for (to_addr, state_init, payload, amount) in orders:
+    order_header = Contract.create_internal_message_header(to_addr, amount)
+    order = Contract.create_common_msg_info(order_header, state_init, payload)
+    signing_message.bits.write_uint8(send_mode)
+    signing_message.refs.append(order)
+  
+  return wallet.create_external_message(signing_message, seqno)['message']
+
+
+def sign_for_sending(orders: list[tuple[Address,Cell,Cell,int]],
+                     description: str) -> Cell:
+  print(f'{h}Sending messages for purpose of{nh}', repr(description))
+  
+  sum_value = 0
+  for (dest, state_init, message, value_nton) in orders:
+    init_flag = f'{b}[deploy]{nb}' if state_init else ''
+    
+    print('===')
+    print(f'{h}Destination:{nh}', dest.to_string(True, True, True), init_flag)
+    print(f'{h}TON amount: {nh}', value_nton / 1e9)
+    print(f'{h}Message BOC:{nh}', b64encode(message.to_boc(False)).decode('ascii'))
+    sum_value += value_nton
+  
+  print('===')
+  print(f'{h}Total TON:  {nh} {sum_value / 1e9}')
   print()
   
   WAY_PROMPT = f'Send via mnemonic [{h}m{nh}]/wallet seed [{h}s{nh}]/ton link [{h}t{nh}]? '
   while (auth_way := input(WAY_PROMPT).lower()) not in ('m', 's', 't'): pass
   
   if auth_way == 't':
-    addr = dest.to_string(True, True, True)
-    boc  = urlsafe_b64encode(message.to_boc(False)).decode('ascii')
-    link = f'ton://transfer/{addr}?bin={boc}&amount={value_nton}'
-    if state_init:
-      link += '&init='
-      link += urlsafe_b64encode(state_init.to_boc(False)).decode('ascii')
+    print('\nTransfer links:')
     
-    print(f'\nTransfer link: {b}{link}{nb}')
+    for (dest, state_init, message, value_nton) in orders:
+      addr = dest.to_string(True, True, True)
+      boc  = urlsafe_b64encode(message.to_boc(False)).decode('ascii')
+      link = f'ton://transfer/{addr}?bin={boc}&amount={value_nton}'
+      if state_init:
+        link += '&init='
+        link += urlsafe_b64encode(state_init.to_boc(False)).decode('ascii')
+      
+      print(f'{b}{link}{nb}')
     
     return None
   
@@ -97,24 +125,20 @@ def sign_for_sending(message: tonsdk.boc.Cell,
   link = f'https://tonapi.io/v1/wallet/getSeqno?account={addr}'
   seqno = requests.get(link).json().get('seqno', 0)
   
-  return wallet.create_transfer_message(dest, value_nton, seqno,
-    payload=message, state_init=state_init)['message']
+  return sign_multitransfer_body(wallet, seqno, orders)
 
 
-def sign_send(message: tonsdk.boc.Cell,
-              dest: tonsdk.utils.Address,
-              state_init: tonsdk.boc.Cell,
-              value_nton: int,
+def sign_send(orders: list[tuple[Address,Cell,Cell,int]],
               description: str):
-  signed_msg = sign_for_sending(message, dest, state_init, value_nton, description)
+  signed_msg = sign_for_sending(orders, description)
   if signed_msg:
     requests.post('https://tonapi.io/v1/send/boc', json={
       'boc': b64encode(signed_msg.to_boc(False)).decode('ascii')
     })
 
 
-def sign_plugin(plugin_init: tonsdk.boc.Cell, value_nton: int,
-                description: str) -> tonsdk.boc.Cell:
+def sign_plugin(plugin_init: Cell, value_nton: int,
+                description: str) -> Cell:
   print(f'{h}Attempting to install plugin{nh}', repr(description))
   print(f'{h}Init BOC:   {nh}', b64encode(plugin_init.to_boc(False)).decode('ascii'))
   print(f'{h}TON amount: {nh}', value_nton / 1e9)
@@ -142,13 +166,13 @@ def sign_plugin(plugin_init: tonsdk.boc.Cell, value_nton: int,
   msg_body.store_int(0, 8)          # workchain 0
   msg_body.store_coins(value_nton)  # initial plugin balance
   msg_body.store_ref(plugin_init)   
-  msg_body.store_ref(tonsdk.boc.Cell())
+  msg_body.store_ref(Cell())
   
   return wallet.create_external_message(msg_body, seqno)['message']
 
 
-def sign_install_plugin(plugin_init: tonsdk.boc.Cell, value_nton: int,
-                        description: str) -> tonsdk.boc.Cell:
+def sign_install_plugin(plugin_init: Cell, value_nton: int,
+                        description: str) -> Cell:
   signed_msg = sign_plugin(plugin_init, value_nton, description)
   if signed_msg:
     requests.post('https://tonapi.io/v1/send/boc', json={

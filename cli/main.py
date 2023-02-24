@@ -8,7 +8,6 @@ import os
 
 from tonsdk.utils import Address
 from tonsdk.boc import Cell
-from base64 import b64encode
 import requests
 
 
@@ -33,9 +32,10 @@ def main():
       elif command == 'q':
         break
       elif command == 'd':
-        dest = 'EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7'
-        payload = Cell()
-        sign_send(payload, Address(dest), None, 5*10**7, 'donate')
+        donate_addr = 'EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7'
+        sign_send([
+          (Address(donate_addr), None, Cell(), 5*10**7),
+        ], 'donate')
       elif command[0] == 'k':
         with keys: process_keyring_cmd(command, keys)
       else:
@@ -47,9 +47,6 @@ def main():
 
 try:
   os.system('')
-  
-  
-  
   main()
 except:
   traceback.print_exc()
