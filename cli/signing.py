@@ -9,7 +9,6 @@ from tonsdk.utils import Address
 from tonsdk.boc import Cell
 import tonsdk.crypto
 import nacl.signing
-
 # TODO: move `requests` out of functions/modules where secret keys are accessed
 import requests
 
@@ -77,7 +76,7 @@ def sign_multitransfer_body(wallet: Contract, seqno: int,
 
 
 def sign_for_sending(orders: list[tuple[Address,Cell,Cell,int]],
-                     description: str) -> Cell:
+                     description: str, auth_way=None, wallet=None) -> Cell:
   print(f'{h}Sending messages for purpose of{nh}', repr(description))
   
   sum_value = 0
@@ -94,9 +93,10 @@ def sign_for_sending(orders: list[tuple[Address,Cell,Cell,int]],
   print(f'{h}Total TON:  {nh} {sum_value / 1e9}')
   print()
   
-  WAY_PROMPT = f'Send via mnemonic [{h}m{nh}]/wallet seed [{h}s{nh}]/ton link [{h}t{nh}]? '
-  while (auth_way := input(WAY_PROMPT).lower()) not in ('m', 's', 't'): pass
-  
+  if not auth_way:
+    WAY_PROMPT = f'Send via mnemonic [{h}m{nh}]/wallet seed [{h}s{nh}]/ton link [{h}t{nh}]? '
+    while (auth_way := input(WAY_PROMPT).lower()) not in ('m', 's', 't'): pass
+    
   if auth_way == 't':
     print('\nTransfer links:')
     
@@ -112,7 +112,8 @@ def sign_for_sending(orders: list[tuple[Address,Cell,Cell,int]],
     
     return None
   
-  wallet = retrieve_auth_wallet(auth_way)
+  if not wallet:
+    wallet = retrieve_auth_wallet(auth_way)
   addr = wallet.address.to_string(True, True, True)
   
   print('Ready to do transfer from', addr)
@@ -129,8 +130,8 @@ def sign_for_sending(orders: list[tuple[Address,Cell,Cell,int]],
 
 
 def sign_send(orders: list[tuple[Address,Cell,Cell,int]],
-              description: str):
-  signed_msg = sign_for_sending(orders, description)
+              description: str, auth_way=None, wallet=None):
+  signed_msg = sign_for_sending(orders, description, auth_way, wallet)
   if signed_msg:
     requests.post('https://tonapi.io/v1/send/boc', json={
       'boc': b64encode(signed_msg.to_boc(False)).decode('ascii')

@@ -3,6 +3,7 @@
 # Original code is licensed under Apache-2.0 License.
 
 import bitarray
+
 from tonsdk.boc import Cell
 from tonsdk.utils import Address
 
@@ -85,7 +86,7 @@ class Slice:
     self.bits = tmp
     return value
 
-  def load_msg_addr(self) -> Address | None:
+  def load_msg_addr(self) -> Address:
     '''Loads contract address from the slice.
     May return None if there is a zero-address.'''
     # TODO: support for external addresses
@@ -124,7 +125,7 @@ class Slice:
   def preload_ref(self) -> Cell:
     return self.refs[self.ref_offset]
 
-  def load_dict(self) -> Cell | None:
+  def load_dict(self) -> Cell:
     '''Loads dictionary like a Cell from the slice.
     Returns None if the dictionary was null().'''
     not_null = self.load_bit()
@@ -133,7 +134,7 @@ class Slice:
     else:
       return None
 
-  def preload_dict(self) -> Cell | None:
+  def preload_dict(self) -> Cell:
     not_null = self.preload_bit()
     if not_null:
       return self.preload_ref()

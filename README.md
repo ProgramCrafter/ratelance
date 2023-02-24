@@ -107,7 +107,7 @@ job_unlocked$00 poster:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
                 = JobContractData;
 
 // CUS-2. Analytic message indicating address of newly created job contract.
-_ job_contract:MsgAddressInt poster:MsgAddressInt value:uint64 desc:^Cell
+_ job_contract:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
   = InternalMsgBody;
 
 // CUS-3. Worker deploys an offer contract as plugin.

@@ -1,5 +1,6 @@
 from keyring import Keyring, process_keyring_cmd
 from about import PROMPT_SINGLE, PROMPT, ABOUT
+from jobs import process_jobs_cmd
 from signing import sign_send
 from colors import b, nb
 
@@ -8,6 +9,7 @@ import os
 
 from tonsdk.utils import Address
 from tonsdk.boc import Cell
+from tslice import Slice
 import requests
 
 
@@ -38,6 +40,8 @@ def main():
         ], 'donate')
       elif command[0] == 'k':
         with keys: process_keyring_cmd(command, keys)
+      elif command[0] == 'j':
+        with keys: process_jobs_cmd(command, keys)
       else:
         print(f'{b}not implemented:{nb} {repr(command)}')
     except KeyboardInterrupt:
@@ -47,6 +51,9 @@ def main():
 
 try:
   os.system('')
+  
+  Cell.begin_parse = lambda self: Slice(self)
+  
   main()
 except:
   traceback.print_exc()
