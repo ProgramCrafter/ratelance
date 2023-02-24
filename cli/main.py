@@ -1,6 +1,6 @@
 from keyring import Keyring, process_keyring_cmd
 from about import PROMPT_SINGLE, PROMPT, ABOUT
-from signing import sign_for_sending
+from signing import sign_send
 from colors import b, nb
 
 import traceback
@@ -35,12 +35,7 @@ def main():
       elif command == 'd':
         dest = 'EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7'
         payload = Cell()
-        signed = sign_for_sending(payload, Address(dest), None,
-                                  5*10**7, 'donate')
-        if signed:
-          requests.post('https://tonapi.io/v1/send/boc', json={
-            'boc': b64encode(signed.to_boc(False)).decode('ascii')
-          })
+        sign_send(payload, Address(dest), None, 5*10**7, 'donate')
       elif command[0] == 'k':
         with keys: process_keyring_cmd(command, keys)
       else:
