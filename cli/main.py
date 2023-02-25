@@ -1,5 +1,6 @@
 from keyring import Keyring, process_keyring_cmd
 from about import PROMPT_SINGLE, PROMPT, ABOUT
+from offers import process_offers_cmd
 from jobs import process_jobs_cmd
 from signing import sign_send
 from colors import b, nb
@@ -42,6 +43,8 @@ def main():
         with keys: process_keyring_cmd(command, keys)
       elif command[0] == 'j':
         with keys: process_jobs_cmd(command, keys)
+      elif command[0] == 'o':
+        with keys: process_offers_cmd(command, keys)
       else:
         print(f'{b}not implemented:{nb} {repr(command)}')
     except KeyboardInterrupt:

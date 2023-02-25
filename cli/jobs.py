@@ -1,3 +1,4 @@
+from bcutils import decode_text, encode_text, load_transactions, shorten_escape
 from signing import retrieve_auth_wallet, sign_send
 from colors import h, nh, b, nb
 from keyring import Keyring 
@@ -8,45 +9,10 @@ import traceback
 from tonsdk.boc import Builder, Cell
 from tonsdk.utils import Address
 from tslice import Slice
-import requests
 
 
 
 JOB_NOTIFICATIONS = 'EQA__RATELANCE_______________________________JvN'
-
-
-# TODO: move to utils
-def load_transactions(address, start_lt):
-  return requests.get(
-    f'https://tonapi.io/v1/blockchain/getTransactions?account={address}&limit=100'
-  ).json()['transactions']
-
-
-# TODO: move to utils
-def decode_text(cell: Cell) -> str:
-  a = ''
-  s = cell.begin_parse()
-  if s.is_empty():            return ''
-  if s.preload_uint(32) == 0: s.skip_bits(32)
-  a += s.load_bytes(len(s) // 8).decode('utf-8')
-  while s.refs:
-    s = s.load_ref().begin_parse()
-    a += s.load_bytes(len(s) // 8).decode('utf-8')
-  return a
-
-
-# TODO: move to utils
-def encode_text(a) -> Cell:
-  if isinstance(a, str):
-    s = a.encode('utf-8')
-  else:
-    s = a
-  
-  b = Builder()
-  b.store_bytes(s[:127])
-  if len(s) > 127:
-    b.store_ref(encode_text(s[127:]))
-  return b.end_cell()
 
 
 def job_data_init(poster: str, value: int, desc: Cell, key: int) -> Cell:
@@ -93,29 +59,27 @@ def load_jobs(start_lt=None, custom_notif_addr=None):
       desc_text = decode_text(desc)
       poster_key = body.load_uint(256)
       
+      # TODO: skip notifications with value < 0.05 TON
+      
       if job.hash_part != job_state_init(poster, value, desc, poster_key).bytes_hash():
-        # TODO: display more information
-        # TODO: coloured output
-        print('Found notification with invalid job address')
+        print(f'{b}Found notification with invalid job address:{nb}', job.to_string())
+        print(f'* {h}poster:      {nh}{poster}')
+        print(f'* {h}description: {nh}{repr(desc_text)}')
       else:
         yield (job.to_string(True, True, True), poster, value, desc_text)
     except Exception as exc:
-      # TODO: coloured output
-      print('Failure while processing notification:', repr(exc))
+      print(f'{b}Failure while processing notification:{nb}', repr(exc))
 
 
 def show_jobs(start_lt=None, custom_notif_addr=None, validate_jobs=False):
   if validate_jobs: raise Exception('validating jobs not supported')
   
   for (job, poster, value, desc) in load_jobs(start_lt, custom_notif_addr):
-    # TODO: escape ANSI/special characters in description not with `repr()`
-    # TODO: shorten `desc` if needed
-    # TODO: coloured output
     jid = job[40:]
-    print(f'Order [{jid}] {job}')
-    print(f'- posted by {poster}')
-    print(f'- promising {value/1e9} TON, staked <unknown>')
-    print('-', desc)
+    print(f'Order [{h}{jid}{nh}] {job}')
+    print(f'- {h}posted by{nh} {poster}')
+    print(f'- {h}promising{nh} {value/1e9} TON, {h}staked{nh} <unknown>')
+    print('-', shorten_escape(desc))
 
 
 def post_job(value: int, stake: int, desc_text: str, keyring: Keyring, key_id: str):
@@ -149,10 +113,13 @@ def post_job(value: int, stake: int, desc_text: str, keyring: Keyring, key_id: s
   addr = Address('0:' + b16encode(si.bytes_hash()).decode('ascii'))
   am = analytic_msg(addr, value, desc, public_key)
   
+  jobs = Address(JOB_NOTIFICATIONS)
+  jobs.is_bounceable = False
+  
   print()
   sign_send([
-    (addr, si, Cell(), stake),
-    (Address(JOB_NOTIFICATIONS), None, am, 5*10**7),
+    (addr, si,   Cell(), stake),
+    (jobs, None, am,     5*10**7),
   ], 'creating job', auth_way, wallet)
 
 

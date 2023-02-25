@@ -117,8 +117,8 @@ _ sig:uint512 sw:uint32 until:uint32 seqno:uint32 [1]:uint8 [0]:uint8 [0.05]:TON
   state_init:^OfferContractState body_init:^(()) = InternalMsgBody;
 
 // CUS-4. Analytic message indicating address of newly created offer contract.
-_ offer_contract:MsgAddressInt worker:MsgAddressInt val:uint64 desc:^Cell
-  = InternalMsgBody;
+_ offer_contract:MsgAddressInt stake:uint64 desc:^Cell worker_key:uint256
+  short_job_hash:uint160 = InternalMsgBody;
 
 // CUS-5. Poster chooses an offer.
 lock_on_offer#000000AC offer_data_init:^OfferContractData
