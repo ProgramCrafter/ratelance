@@ -1,4 +1,4 @@
-from bcutils import decode_text, encode_text, load_transactions, shorten_escape
+from bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address
 from signing import retrieve_auth_wallet, sign_send
 from colors import h, nh, b, nb
 from keyring import Keyring 
@@ -92,18 +92,9 @@ def post_job(value: int, stake: int, desc_text: str, keyring: Keyring, key_id: s
   WAY_PROMPT = f'Send via mnemonic [{h}m{nh}]/wallet seed [{h}s{nh}]/ton link [{h}t{nh}]? '
   while (auth_way := input(WAY_PROMPT).lower()) not in ('m', 's', 't'): pass
   
-  wallet = None
-  poster = None
-  
   if auth_way == 't':
-    while True:
-      try:
-        poster = Address(input(f'{b}Your address: {nb}'))
-        break
-      except KeyboardInterrupt:
-        raise
-      except Exception:
-        pass
+    wallet = None
+    poster = input_address(f'{b}Your address: {nb}')
   else:
     wallet = retrieve_auth_wallet(auth_way)
     poster = wallet.address.to_string(True, True, True)

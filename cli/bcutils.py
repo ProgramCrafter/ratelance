@@ -1,11 +1,29 @@
 from tonsdk.boc import Builder, Cell
+from tonsdk.utils import Address
 import requests
+
+
+
+def input_address(prompt):
+  while True:
+    try:
+      return Address(input(prompt))
+    except KeyboardInterrupt:
+      raise
+    except Exception:
+      pass
 
 
 def load_transactions(address, start_lt):
   return requests.get(
     f'https://tonapi.io/v1/blockchain/getTransactions?account={address}&limit=100'
   ).json()['transactions']
+
+
+def load_account(address):
+  return requests.get(
+    f'https://tonapi.io/v1/blockchain/getAccount?account={address}'
+  ).json()
 
 
 def decode_text(cell: Cell) -> str:

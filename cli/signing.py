@@ -139,17 +139,16 @@ def sign_send(orders: list[tuple[Address,Cell,Cell,int]],
 
 
 def sign_plugin(plugin_init: Cell, value_nton: int,
-                description: str) -> Cell:
+                description: str, wallet=None) -> Cell:
   print(f'{h}Attempting to install plugin{nh}', repr(description))
   print(f'{h}Init BOC:   {nh}', b64encode(plugin_init.to_boc(False)).decode('ascii'))
   print(f'{h}TON amount: {nh}', value_nton / 1e9)
-  print(f'{h}Message BOC:{nh}', b64encode(message.to_boc(False)).decode('ascii'))
   print()
   
-  WAY_PROMPT = f'Install via mnemonic [{h}m{nh}]/wallet seed [{h}s{nh}]? '
-  while (auth_way := input(WAY_PROMPT).lower()) not in ('m', 's'): pass
-  
-  wallet = retrieve_auth_wallet(auth_way, plugin_only=True)
+  if not wallet:
+    WAY_PROMPT = f'Install via mnemonic [{h}m{nh}]/wallet seed [{h}s{nh}]? '
+    while (auth_way := input(WAY_PROMPT).lower()) not in ('m', 's'): pass
+    wallet = retrieve_auth_wallet(auth_way, plugin_only=True)
   addr = wallet.address.to_string(True, True, True)
   
   print('Ready to install plugin to', addr)
@@ -163,18 +162,18 @@ def sign_plugin(plugin_init: Cell, value_nton: int,
   seqno = requests.get(link).json().get('seqno', 0)
   
   msg_body = wallet.create_signing_message(seqno, without_op=True)
-  msg_body.store_uint(1, 8)         # deploy + install plugin
-  msg_body.store_int(0, 8)          # workchain 0
-  msg_body.store_coins(value_nton)  # initial plugin balance
-  msg_body.store_ref(plugin_init)   
-  msg_body.store_ref(Cell())
+  msg_body.bits.write_uint(1, 8)         # deploy + install plugin
+  msg_body.bits.write_int(0, 8)          # workchain 0
+  msg_body.bits.write_coins(value_nton)  # initial plugin balance
+  msg_body.refs.append(plugin_init)   
+  msg_body.refs.append(Cell())
   
   return wallet.create_external_message(msg_body, seqno)['message']
 
 
 def sign_install_plugin(plugin_init: Cell, value_nton: int,
-                        description: str) -> Cell:
-  signed_msg = sign_plugin(plugin_init, value_nton, description)
+                        description: str, wallet=None) -> Cell:
+  signed_msg = sign_plugin(plugin_init, value_nton, description, wallet)
   if signed_msg:
     requests.post('https://tonapi.io/v1/send/boc', json={
       'boc': b64encode(signed_msg.to_boc(False)).decode('ascii')
