@@ -2,6 +2,7 @@ from colors import nh, h, nb, b, ns, s
 
 from base64 import b16decode, b64encode, urlsafe_b64encode
 from getpass import getpass
+import time
 
 from tonsdk.contract.wallet import Wallets
 from tonsdk.contract import Contract
@@ -180,4 +181,43 @@ def sign_install_plugin(plugin_init: Cell, value_nton: int,
     })
 
 
+def sign_unplug(plugin: str, description: str, wallet=None) -> Cell:
+  print(f'{h}Attempting to remove plugin{nh}', repr(description))
+  print(f'{h}Address:{nh}', plugin)
+  print()
+  
+  if not wallet:
+    WAY_PROMPT = f'Remove via mnemonic [{h}m{nh}]/wallet seed [{h}s{nh}]? '
+    while (auth_way := input(WAY_PROMPT).lower()) not in ('m', 's'): pass
+    wallet = retrieve_auth_wallet(auth_way, plugin_only=True)
+  addr = wallet.address.to_string(True, True, True)
+  
+  print('Ready to remove plugin from', addr)
+  
+  while (confirm := input(f'{h}Confirm? [y/n] {nh}').lower()) not in ('y', 'n'):
+    pass
+  
+  if confirm == 'n': return None
+  
+  link = f'https://tonapi.io/v1/wallet/getSeqno?account={addr}'
+  seqno = requests.get(link).json().get('seqno', 0)
+  
+  plugin_addr = Address(plugin)
+  
+  msg_body = wallet.create_signing_message(seqno, without_op=True)
+  msg_body.bits.write_uint(3, 8)         # remove plugin
+  msg_body.bits.write_int(plugin_addr.wc, 8)
+  msg_body.bits.write_bytes(plugin_addr.hash_part)
+  msg_body.bits.write_coins(5*10**7)     # value to send for destroying
+  msg_body.bits.write_uint(int(time.time() * 1000), 64)
+  
+  return wallet.create_external_message(msg_body, seqno)['message']
+
+
+def sign_uninstall_plugin(plugin: str, description: str, wallet=None) -> Cell:
+  signed_msg = sign_unplug(plugin, description, wallet)
+  if signed_msg:
+    requests.post('https://tonapi.io/v1/send/boc', json={
+      'boc': b64encode(signed_msg.to_boc(False)).decode('ascii')
+    })
 

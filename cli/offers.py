@@ -1,5 +1,5 @@
 from bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address, load_account
-from signing import retrieve_auth_wallet, sign_send, sign_install_plugin
+from signing import retrieve_auth_wallet, sign_send, sign_install_plugin, sign_uninstall_plugin
 from colors import h, nh, b, nb
 from keyring import Keyring 
 
@@ -124,6 +124,10 @@ def post_offer(job: str, stake: int, desc_text: str, shjh: int, keyring: Keyring
   sign_send([(job, None, am, 1)], 'notifying job poster', auth_way, wallet)
 
 
+def revoke_offer(offer: str):
+  sign_uninstall_plugin(offer, 'revoking offer')
+
+
 def process_offers_cmd(command, keyring):
   if command == 'ol':
     # TODO: support job IDs instead of addresses
@@ -149,5 +153,7 @@ def process_offers_cmd(command, keyring):
     job_hash = int.from_bytes(job_data.bytes_hash(), 'big') & ((1 << 160) - 1)
     
     post_offer(job, stake, desc_text, job_hash, keyring, key_id)
+  elif command == 'or':
+    revoke_offer(input_address(f'{b}Offer address: {nb}').to_string(True, True, True))
   else:
     print(f'{b}not implemented:{nb} {repr(command)}')
