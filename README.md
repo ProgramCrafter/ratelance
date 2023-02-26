@@ -142,7 +142,7 @@ refuse_collapse#ffffffff [000000B1]:uint32 ... = InternalMsgBody;
 give_stake#f06c7567 query_id:uint64 = InternalMsgBody;
 
 // CUS-9-OK. Offer merges into job contract.
-lock_success#000000A3 worker:MsgAddressInt desc:^Cell worker_key:uint256
+lock_success#000000AD worker:MsgAddressInt desc:^Cell worker_key:uint256
   = InternalMsgBody;
 unplug#64737472 query_id:uint64 = InternalMsgBody;
 

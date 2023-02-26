@@ -1,9 +1,9 @@
-from bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address
+from bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address, load_account
 from signing import retrieve_auth_wallet, sign_send
 from colors import h, nh, b, nb
 from keyring import Keyring 
 
-from base64 import b64decode, b16encode
+from base64 import b64decode, b16decode, b16encode
 import traceback
 
 from tonsdk.boc import Builder, Cell
@@ -64,7 +64,7 @@ def load_jobs(start_lt=None, custom_notif_addr=None):
       if job.hash_part != job_state_init(poster, value, desc, poster_key).bytes_hash():
         print(f'{b}Found notification with invalid job address:{nb}', job.to_string())
         print(f'* {h}poster:      {nh}{poster}')
-        print(f'* {h}description: {nh}{repr(desc_text)}')
+        print(f'* {h}description: {nh}{shorten_escape(desc_text)}')
       else:
         yield (job.to_string(True, True, True), poster, value, desc_text)
     except Exception as exc:
@@ -114,6 +114,67 @@ def post_job(value: int, stake: int, desc_text: str, keyring: Keyring, key_id: s
   ], 'creating job', auth_way, wallet)
 
 
+def delegate_job(job: str, offer_addr: str):
+  msg = Builder()
+  msg.store_uint(0x000000AC, 32)
+  msg.store_ref(Cell())
+  msg.store_address(Address(offer_addr))
+  
+  sign_send([(Address(job), None, msg.end_cell(), 10**9)], 'delegating job')
+
+
+def show_job(job: str):
+  acc = load_account(job)
+  
+  if acc['status'] != 'active':
+    print('* contract', acc['status'])
+    return
+  
+  d = Cell.one_from_boc(b16decode(acc['data'].upper())).begin_parse()
+  flag = d.load_uint(2)
+  
+  if flag == 0:
+    print(f'* job {h}waiting for offers{nh}')
+    print(f'- {h}posted by {nh}', d.load_msg_addr().to_string(True, True, True))
+    print(f'- {h}promising {nh}', d.load_uint(64) / 1e9, 'TON')
+    print(f'- {h}public key{nh}', b16encode(d.load_bytes(32)).decode('ascii'))
+    
+    j_desc_text = decode_text(d.load_ref())
+    print(f'- {h}job descr {nh}', shorten_escape(j_desc_text, indent=12))
+    
+    d.end_parse()
+  elif flag == 1:
+    print(f'* job {h}locked on offer{nh}', d.load_msg_addr().to_string(True, True, True))
+    print(f'- {h}posted by {nh}', d.load_msg_addr().to_string(True, True, True))
+    print(f'- {h}promising {nh}', d.load_uint(64) / 1e9, 'TON')
+    print(f'- {h}public key{nh}', b16encode(d.load_bytes(32)).decode('ascii'))
+    
+    j_desc_text = decode_text(d.load_ref())
+    print(f'- {h}job descr {nh}', shorten_escape(j_desc_text, indent=12))
+    
+    d.end_parse()
+  elif flag == 2:
+    print(f'* {h}taken{nh} job')
+    print(f'- {h}posted by  {nh}', d.load_msg_addr().to_string(True, True, True))
+    print(f'- {h}worker     {nh}', d.load_msg_addr().to_string(True, True, True))
+    print(f'- {h}promising  {nh}', d.load_uint(64) / 1e9, 'TON')
+    
+    j_desc_text = decode_text(d.load_ref())
+    print(f'- {h}job descr  {nh}', shorten_escape(j_desc_text, indent=13))
+    o_desc_text = decode_text(d.load_ref())
+    print(f'- {h}offer descr{nh}', shorten_escape(o_desc_text, indent=13))
+    
+    keys = d.load_ref().begin_parse()
+    print(f'- {h}   poster key{nh}', b16encode(keys.load_bytes(32)).decode('ascii'))
+    print(f'- {h}   worker key{nh}', b16encode(keys.load_bytes(32)).decode('ascii'))
+    print(f'- {h}Ratelance key{nh}', b16encode(keys.load_bytes(32)).decode('ascii'))
+    
+    keys.end_parse()
+    d.end_parse()
+  else:
+    print('* broken job contract')
+
+
 def process_jobs_cmd(command, keyring):
   if command == 'jl':
     show_jobs()
@@ -130,5 +191,15 @@ def process_jobs_cmd(command, keyring):
     desc_text = input('Job description: ')
     
     post_job(value, stake, desc_text, keyring, key_id)
+  elif command == 'jd':
+    job   = input_address('Job address:   ')
+    offer = input_address('Offer address: ')
+    
+    delegate_job(job, offer)
+  elif command == 'ji':
+    try:
+      show_job(input_address('Job address: ').to_string(True, True, True))
+    except Exception as exc:
+      print(f'{b}Invalid job:{nb}', repr(exc))
   else:
     print(f'{b}not implemented:{nb} {repr(command)}')
