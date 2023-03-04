@@ -5,6 +5,7 @@ from keyring import Keyring
 
 from base64 import b64decode, b16decode, b16encode
 import traceback
+import hashlib
 
 from tonsdk.boc import Builder, Cell
 from tonsdk.utils import Address
@@ -123,7 +124,15 @@ def delegate_job(job: str, offer_addr: str):
   sign_send([(Address(job), None, msg.end_cell(), 10**9)], 'delegating job')
 
 
-def show_job(job: str):
+def public_key_desc(key: bytes, keyring) -> str:
+  key_hex = b16encode(key).decode('ascii')
+  key_armored = 'pub:ed25519:vk:' + key_hex
+  key_id = hashlib.sha256(key_armored.encode('ascii')).hexdigest()[::8]
+  not_present = 'not ' if key_id not in keyring.keys_info else ''
+  return f'{key_hex} ({key_id}, {h}{not_present}present{nh} in local keyring)'
+
+
+def show_job(job: str, keyring):
   acc = load_account(job)
   
   if acc['status'] != 'active':
@@ -137,7 +146,7 @@ def show_job(job: str):
     print(f'* job {h}waiting for offers{nh}')
     print(f'- {h}posted by {nh}', d.load_msg_addr().to_string(True, True, True))
     print(f'- {h}promising {nh}', d.load_uint(64) / 1e9, 'TON')
-    print(f'- {h}public key{nh}', b16encode(d.load_bytes(32)).decode('ascii'))
+    print(f'- {h}public key{nh}', public_key_desc(d.load_bytes(32), keyring))
     
     j_desc_text = decode_text(d.load_ref())
     print(f'- {h}job descr {nh}', shorten_escape(j_desc_text, indent=12))
@@ -147,7 +156,7 @@ def show_job(job: str):
     print(f'* job {h}locked on offer{nh}', d.load_msg_addr().to_string(True, True, True))
     print(f'- {h}posted by {nh}', d.load_msg_addr().to_string(True, True, True))
     print(f'- {h}promising {nh}', d.load_uint(64) / 1e9, 'TON')
-    print(f'- {h}public key{nh}', b16encode(d.load_bytes(32)).decode('ascii'))
+    print(f'- {h}public key{nh}', public_key_desc(d.load_bytes(32), keyring))
     
     j_desc_text = decode_text(d.load_ref())
     print(f'- {h}job descr {nh}', shorten_escape(j_desc_text, indent=12))
@@ -165,9 +174,9 @@ def show_job(job: str):
     print(f'- {h}offer descr{nh}', shorten_escape(o_desc_text, indent=13))
     
     keys = d.load_ref().begin_parse()
-    print(f'- {h}   poster key{nh}', b16encode(keys.load_bytes(32)).decode('ascii'))
-    print(f'- {h}   worker key{nh}', b16encode(keys.load_bytes(32)).decode('ascii'))
-    print(f'- {h}Ratelance key{nh}', b16encode(keys.load_bytes(32)).decode('ascii'))
+    print(f'- {h}   poster key{nh}', public_key_desc(keys.load_bytes(32), keyring))
+    print(f'- {h}   worker key{nh}', public_key_desc(keys.load_bytes(32), keyring))
+    print(f'- {h}Ratelance key{nh}', public_key_desc(keys.load_bytes(32), keyring))
     
     keys.end_parse()
     d.end_parse()
@@ -198,7 +207,7 @@ def process_jobs_cmd(command, keyring):
     delegate_job(job, offer)
   elif command == 'ji':
     try:
-      show_job(input_address('Job address: ').to_string(True, True, True))
+      show_job(input_address('Job address: ').to_string(True, True, True), keyring)
     except Exception as exc:
       print(f'{b}Invalid job:{nb}', repr(exc))
   else:

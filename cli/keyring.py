@@ -55,7 +55,7 @@ class Keyring:
       assert public_key.startswith('pub:ed25519:vk:')
       assert secret_key.startswith('prv:ed25519:sk:')
       
-      key_id = hashlib.sha256(secret_key.encode('ascii')).hexdigest()[::8]
+      key_id = hashlib.sha256(public_key.encode('ascii')).hexdigest()[::8]
       
       self.keys_info[key_id] = {
         'public': b16decode(public_key.removeprefix('pub:ed25519:vk:')),
@@ -76,8 +76,8 @@ class Keyring:
     secret_key_obj = nacl.signing.SigningKey(secret_bytes)
     public_bytes = secret_key_obj.verify_key.encode()
     
-    secret_key_armored = 'prv:ed25519:sk:' + b16encode(secret_bytes)
-    key_id = hashlib.sha256(secret_key_armored.encode('ascii')).hexdigest()[::8]
+    public_key_armored = 'pub:ed25519:vk:' + b16encode(public_bytes)
+    key_id = hashlib.sha256(public_key_armored.encode('ascii')).hexdigest()[::8]
     
     self.keys_info[key_id] = {
       'public': public_bytes,
