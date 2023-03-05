@@ -39,6 +39,7 @@ def job_state_init(poster: str, value: int, desc: Cell, key: int) -> Cell:
 
 def analytic_msg(job: Address, value: int, desc: Cell, key: int) -> Cell:
   am = Builder()
+  am.store_uint(0x130850fc, 32)
   am.store_address(job)
   am.store_uint(value, 64)
   am.store_ref(desc)

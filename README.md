@@ -107,8 +107,9 @@ job_unlocked$00 poster:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
                 = JobContractData;
 
 // CUS-2. Analytic message indicating address of newly created job contract.
-_ job_contract:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
-  = InternalMsgBody;
+// zlib.crc32(b'notify::contract') & 0x7FFFFFFF
+_#130850fc job_contract:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
+           = InternalMsgBody;
 
 // CUS-3. Worker deploys an offer contract as plugin.
 offer_unlocked$00 job:MsgAddressInt worker:MsgAddressInt stake:uint64 desc:^Cell
@@ -117,8 +118,9 @@ _ sig:uint512 sw:uint32 until:uint32 seqno:uint32 [1]:uint8 [0]:uint8 [0.05]:TON
   state_init:^OfferContractState body_init:^(()) = InternalMsgBody;
 
 // CUS-4. Analytic message indicating address of newly created offer contract.
-_ offer_contract:MsgAddressInt stake:uint64 desc:^Cell worker_key:uint256
-  short_job_hash:uint160 = InternalMsgBody;
+// zlib.crc32(b'notify::offer') & 0x7FFFFFFF
+_#18ceb1bf offer_contract:MsgAddressInt stake:uint64 desc:^Cell
+           worker_key:uint256 short_job_hash:uint160 = InternalMsgBody;
 
 // CUS-5. Poster chooses an offer.
 lock_on_offer#000000AC offer_data_init:^OfferContractData
@@ -162,20 +164,24 @@ job_working$10 poster:MsgAddressInt worker:MsgAddressInt value:uint64
 
 // CUS-11. Single-signed messages.
 _ min_nton:uint64 max_nton:uint64 = PayLim;
-_ [FFFF726C3A3A6A6F623A3A7630]:bits $00000 self:MsgAddressInt ton_range:PayLim
+_ [FFFF726C3A3A6A6F623A3A7630]:bits $00000 job:MsgAddressInt ton_range:PayLim
   = Signed;
-poster_proposal$00 sig:bits512 worker_ton_range:PayLim = InternalMsgBody;
-worker_proposal$01 sig:bits512 worker_ton_range:PayLim = InternalMsgBody;
-ratelance_proposal$10 sig:bits512 worker_ton_range:PayLim = InternalMsgBody;
+poster_proposal$00 sig:bits512 worker_ton_range:PayLim = Proposal;
+worker_proposal$01 sig:bits512 worker_ton_range:PayLim = Proposal;
+ratelance_proposal$10 sig:bits512 worker_ton_range:PayLim = Proposal;
+ton_vals_proposal$11 = Proposal;
 
 // Config parameter ID: zlib.crc32(b'ratelance::decisions') & 0x7FFFFFFF
 ton_vals_proposal#_ dec_by_job:(HashmapE MsgAddressInt (uint64,uint64))
                     = ConfigParam 1652841508;
 
+// Messages to `multisig_negotiation` address (normally the job itself)
+// zlib.crc32(b'op::negotiate_reward') & 0x7FFFFFFF
+negotiate_reward#4bed4ee8 proposal:^Proposal = InternalMsgBody;
+
 // CUS-12. Finishing work.
-finish_job#000000BB first_sig:^[poster/worker/ratelance_proposal/$11]
-                    second_sig:^[poster/worker/ratelance_proposal/$11]
-                    {first_sig::discriminant != second_sig::discriminant}
+finish_job#000000BB first_sig:^Proposal second_sig:^Proposal
+                    {first_sig::tag != second_sig::tag}
                     = InternalMsgBody;
 
 // CUS-1,2-REV. Cancelling job.

@@ -41,6 +41,7 @@ def offer_state_init(job: str, worker: Address, stake: int, desc: Cell,
 def analytic_msg(offer: Address, stake: int, desc: Cell,
                  key: int, short_job_hash: int) -> Cell:
   am = Builder()
+  am.store_uint(0x18ceb1bf, 32)
   am.store_address(offer)
   am.store_uint(stake, 64)
   am.store_ref(desc)
