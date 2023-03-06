@@ -54,6 +54,16 @@ def load_jobs(start_lt=None, custom_notif_addr=None):
   for tx in load_transactions(notif, start_lt=start_lt):
     try:
       body = Cell.one_from_boc(b64decode(tx['in_msg']['msg_data'])).begin_parse()
+      
+      if body.preload_uint(32) != 0x130850fc:
+        print(f'\n{b}* legacy job notification [without TL-B tag]{nb}')
+        assert tx['hash'] in (
+          '155ccfdc282660413ada2c1b71ecbd5935db7afd40c82d7b36b8502fea064b8a',
+          'f2c76d3ea82e6147887320a71b359553f99cb176a521d63081facfb80a183dbf',
+        )
+      else:
+        body.skip_bits(32)
+      
       job = body.load_msg_addr()
       poster = Address(tx['in_msg']['source']['address']).to_string(True, True, True)
       value = body.load_uint(64)

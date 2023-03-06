@@ -65,6 +65,17 @@ def load_offers(job: str, start_lt=None):
       
       worker = Address(tx['in_msg']['source']['address'])
       body = Cell.one_from_boc(b64decode(tx['in_msg']['msg_data'])).begin_parse()
+      
+      if body.preload_uint(32) not in (0x18ceb1bf, 0x4bed4ee8):
+        print(f'\n{b}* legacy offer notification [without TL-B tag]{nb}')
+        assert tx['hash'] in (
+          '4109a9bf38f7376acdb013ff95e33ebb5112c00ebd9d93a348361522400b5783',
+          '8fb9cb7532a8d6a710106d1c346f99bdd22a2d74480858956ecc19a02e1dfd8d',
+          'a598c47a792ceccb9e26b2cd5cc73c7a6024dae12f24ae20747182966b407b65',
+        )
+      else:
+        body.skip_bits(32)
+      
       offer = body.load_msg_addr()
       stake = body.load_uint(64)
       desc = body.load_ref()
