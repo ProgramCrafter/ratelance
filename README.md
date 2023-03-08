@@ -18,20 +18,33 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 - Vote for us in Hack-a-TONx: https://dorahacks.io/buidl/4227
 - Propose something, report a bug, etc: [issues](https://github.com/ProgramCrafter/ratelance/issues)
 
+## Install
+
+```
+$ git clone https://github.com/ProgramCrafter/ratelance.git
+$ pip3 install tonsdk pynacl requests
+$ cd ratelance/cli
+$ python3 main.py
+```
+
 ## Current state
 
 - `contracts` :white_check_mark:
   - platform contracts with unit tests
 - `cli`
-  - currently: keys storage
-  - working on: application for interacting with contracts and deploying new
+  - [x] Getting information about jobs, posting and revoking
+  - [x] Applying for jobs, revoking offers
+  - [ ] Verifying for job/offer existence and validity
+  - [x] Listing offers, delegating job to someone
+  - [ ] Encrypted communication channel on top of job contract
+  - [x] Negotiating payments
+  - [x] Working with keyring
+  - [ ] Integration with system keys storage/using password for keyring encryption
 - `freelance-highlevel.idr`
   - [x] High-level contracts representation
+  - [ ] Storing contracts' balances
   - [x] Transaction loop implementation
   - [ ] Proof that transaction loop terminates (based on balances)
-  - [x] Contracts storage implementation
-  - [ ] Storing contracts in a dictionary
-  - [x] Simple contract
   - [x] Freelance job contract types
   - [x] Freelance job contract code
   - [ ] Freelance worker contract types
@@ -63,10 +76,10 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
  - poster+Ratelance      &ndash; worker has not accomplished the work, poster gets a refund
  - worker+Ratelance      &ndash; poster does not accept provided work, worker gets the money
  - poster+TON validators &ndash; something done by worker is deemed so inacceptible by TON that even voting is conducted
- - worker+TON validators &ndash; heavy disagreement between poster and worker, so that Ratelance cannot be an referee
+ - worker+TON validators &ndash; heavy disagreement between poster and worker, so that Ratelance cannot be a referee
  - Ratelance+TON         &ndash; order is deemed so inacceptible by TON that even voting is conducted
 ---
-11. Single-party-signed messages go to `multisig_negotiation` address as analytic messages with minimal value.
+11. Single-party-signed messages go to job or other pre-established address as analytic messages with minimal value.
 ---
 12. Upon receiving message with required signatures, job contract sends out TON and self-destroys.
 
@@ -96,97 +109,3 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 - `3.`  &nbsp;&ndash;
 - `2.`  &nbsp;&ndash;
 - `1.`  &nbsp;&ndash;
-
-## TL-B
-
-Common user story = CUS.
-
-```
-// CUS-1. Poster creates a job contract. Message is empty.
-job_unlocked$00 poster:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
-                = JobContractData;
-
-// CUS-2. Analytic message indicating address of newly created job contract.
-// zlib.crc32(b'notify::contract') & 0x7FFFFFFF
-_#130850fc job_contract:MsgAddressInt value:uint64 desc:^Cell poster_key:uint256
-           = InternalMsgBody;
-
-// CUS-3. Worker deploys an offer contract as plugin.
-offer_unlocked$00 job:MsgAddressInt worker:MsgAddressInt stake:uint64 desc:^Cell
-                  worker_key:uint256 short_job_hash:uint160 = OfferContractData;
-_ sig:uint512 sw:uint32 until:uint32 seqno:uint32 [1]:uint8 [0]:uint8 [0.05]:TON
-  state_init:^OfferContractState body_init:^(()) = InternalMsgBody;
-
-// CUS-4. Analytic message indicating address of newly created offer contract.
-// zlib.crc32(b'notify::offer') & 0x7FFFFFFF
-_#18ceb1bf offer_contract:MsgAddressInt stake:uint64 desc:^Cell
-           worker_key:uint256 short_job_hash:uint160 = InternalMsgBody;
-
-// CUS-5. Poster chooses an offer.
-lock_on_offer#000000AC offer_data_init:^OfferContractData
-                       addr:MsgAddressInt = InternalMsgBody;
-
-// CUS-6. Job contract locks.
-collapse#000000B1 current_short_hash:uint160 = InternalMsgBody;
-job_locked$01 offer:MsgAddressInt poster:MsgAddressInt value:uint64 desc:^Cell
-              poster_key:uint256 = JobContractData;
-
-// CUS-7. Offer contract requests money and locks.
-take_stake#706c7567 query_id:uint64 stake:(VarUInteger 16) ext:hme_empty
-  = InternalMsgBody;
-offer_locked$01   job:MsgAddressInt worker:MsgAddressInt stake:uint64 desc:^Cell
-                  worker_key:uint256 short_job_hash:uint160 = OfferContractData;
-
-// CUS-7-ERR. Offer contract specified by job poster does not exist.
-refuse_collapse#ffffffff [000000B1]:uint32 ... = InternalMsgBody;
-
-// CUS-8-OK. Wallet returns the money.
-give_stake#f06c7567 query_id:uint64 = InternalMsgBody;
-
-// CUS-9-OK. Offer merges into job contract.
-lock_success#000000AD worker:MsgAddressInt desc:^Cell worker_key:uint256
-  = InternalMsgBody;
-unplug#64737472 query_id:uint64 = InternalMsgBody;
-
-// CUS-8-ERR. Insufficient funds on worker's wallet.
-refuse_give#ffffffff [706c7567]:uint32 query_id:uint64 ... = InternalMsgBody;
-
-// CUS-9-ERR. Offer contract unlocks itself and job contract.
-// offer_unlocked
-lock_failed#000000D4 = InternalMsgBody;
-// job_unlocked
-
-// CUS-10. Job contract essentially becomes multisig wallet.
-job_working$10 poster:MsgAddressInt worker:MsgAddressInt value:uint64
-               poster_desc:^Cell worker_desc:^Cell
-               keys:^[poster:uint256 worker:uint256 platform:uint256]
-               = JobContractData;
-
-// CUS-11. Single-signed messages.
-_ min_nton:uint64 max_nton:uint64 = PayLim;
-_ [FFFF726C3A3A6A6F623A3A7630]:bits $00000 job:MsgAddressInt ton_range:PayLim
-  = Signed;
-poster_proposal$00 sig:bits512 worker_ton_range:PayLim = Proposal;
-worker_proposal$01 sig:bits512 worker_ton_range:PayLim = Proposal;
-ratelance_proposal$10 sig:bits512 worker_ton_range:PayLim = Proposal;
-ton_vals_proposal$11 = Proposal;
-
-// Config parameter ID: zlib.crc32(b'ratelance::decisions') & 0x7FFFFFFF
-ton_vals_proposal#_ dec_by_job:(HashmapE MsgAddressInt (uint64,uint64))
-                    = ConfigParam 1652841508;
-
-// Messages to `multisig_negotiation` address (normally the job itself)
-// zlib.crc32(b'op::negotiate_reward') & 0x7FFFFFFF
-negotiate_reward#4bed4ee8 proposal:^Proposal = InternalMsgBody;
-
-// CUS-12. Finishing work.
-finish_job#000000BB first_sig:^Proposal second_sig:^Proposal
-                    {first_sig::tag != second_sig::tag}
-                    = InternalMsgBody;
-
-// CUS-1,2-REV. Cancelling job.
-cancel_job#000000EB = InternalMsgBody;
-
-// CUS-3,4-REV. Cancelling offer.
-destruct#64737472 = InternalMsgBody;
-```
