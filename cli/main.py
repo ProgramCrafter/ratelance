@@ -56,11 +56,11 @@ def main():
     print('\n')
 
 try:
-  os.system('')
-  
   Cell.begin_parse = lambda self: Slice(self)
   
-  main()
+  if __name__ == '__main__':
+    os.system('')
+    main()
 except:
   traceback.print_exc()
   input('...')

@@ -4,3 +4,6 @@ Disasm.fif
 seed.pk
 __pycache__
 *.pyc
+
+# due to some unresolved architecture issues
+bot-interface

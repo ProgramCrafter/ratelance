@@ -27,6 +27,16 @@ $ cd ratelance/cli
 $ python3 main.py
 ```
 
+## Pros of this system
+
+1. There are no TODOs in contracts; their code is hopefully final
+1. Contracts' states are simple, which makes it easier to verify their correctness
+1. Distribution of reward is flexible, which allows worker and job poster to negotiate half-payment or something more interesting
+1. System is symmetric, which allows workers to post announcements that they are ready to take some jobs
+1. Contracts are written in FunC; that ensures less errors while converting to TVM assembly than high-level languages like Tact
+1. System utilizes newest TON features, such as wallet v4 plugins
+1. CLI is almost ready to be used, it covers whole contract lifetime
+
 ## Current state
 
 - `contracts` :white_check_mark:
