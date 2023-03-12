@@ -1,0 +1,7 @@
+utils.py
+examples
+__pycache__
+bot.json
+bot.log
+.lock
+update_id.txt
