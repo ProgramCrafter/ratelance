@@ -1,6 +1,6 @@
-from bcutils import input_address, load_account
-from colors import h, nh, b, nb
-from signing import sign_send
+from .bcutils import input_address, load_account
+from .colors import h, nh, b, nb
+from .signing import sign_send
 
 from tonsdk.boc import Builder, Cell
 from tonsdk.utils import Address

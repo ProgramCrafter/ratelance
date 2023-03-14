@@ -1,7 +1,7 @@
-from bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address, load_account
-from signing import retrieve_auth_wallet, sign_send, sign_install_plugin, sign_uninstall_plugin
-from colors import h, nh, b, nb
-from keyring import Keyring 
+from .bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address, load_account
+from .signing import retrieve_auth_wallet, sign_send, sign_install_plugin, sign_uninstall_plugin
+from .colors import h, nh, b, nb
+from .keyring import Keyring 
 
 from base64 import b64decode, b16decode, b16encode
 import traceback
@@ -9,7 +9,7 @@ import time
 
 from tonsdk.boc import Builder, Cell
 from tonsdk.utils import Address
-from tslice import Slice
+from .tslice import Slice
 
 
 

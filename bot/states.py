@@ -29,7 +29,13 @@ class StartState(IState):
         return True
     
     def enter_state(self, in_msg_full, reply, send_callback):
-        pass
+        reply_text = f'''
+Hello, <b>{in_msg_full['from']['first_name']}</b>! How could I serve you?
+'''.strip()
+        
+        reply(reply_text, keyboard=[
+          ['List available jobs', 'Look up job status', 'List offers to specific job']
+        ])
     
     def run(self, in_msg_full, reply, send_callback):
         in_msg_body = in_msg_full.get('text', '')
@@ -48,15 +54,10 @@ class StartState(IState):
           
           reply('\n'.join(job_texts))
           
+          self.enter_state(in_msg_full, reply, send_callback)
           return self
         
-        reply(f'''
-Hello, <b>{in_msg_full['from']['first_name']}</b>! How could I serve you?
-'''.strip(), keyboard=[
-          ['List available jobs', 'Look up job status', 'List offers to specific job']
-        ])
-        
-        # next state
+        self.enter_state(in_msg_full, reply, send_callback)
         return self
     
     def __repr__(self):

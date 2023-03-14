@@ -1,17 +1,16 @@
-from keyring import Keyring, process_keyring_cmd
-from about import PROMPT_SINGLE, PROMPT, ABOUT
-from contracts import process_contract_cmd
-from offers import process_offers_cmd
-from jobs import process_jobs_cmd
-from signing import sign_send
-from colors import b, nb
+from cli.keyring import Keyring, process_keyring_cmd
+from cli.about import PROMPT_SINGLE, PROMPT, ABOUT
+from cli.contracts import process_contract_cmd
+from cli.offers import process_offers_cmd
+from cli.jobs import process_jobs_cmd
+from cli.signing import sign_send
+from cli.colors import b, nb
+import cli.polyfills
 
 import traceback
 import os
 
 from tonsdk.utils import Address
-from tonsdk.boc import Cell
-from tslice import Slice
 import requests
 
 
@@ -56,8 +55,6 @@ def main():
     print('\n')
 
 try:
-  Cell.begin_parse = lambda self: Slice(self)
-  
   if __name__ == '__main__':
     os.system('')
     main()

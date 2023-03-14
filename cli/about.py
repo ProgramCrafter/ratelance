@@ -1,4 +1,4 @@
-from colors import nh, h, nb, b, ns, s
+from .colors import nh, h, nb, b, ns, s
 
 PROMPT_SINGLE = f'''{b}{"="*80}{ns}
 Jobs       {h}jl{nh}: list {h}jp{nh}: post   {h}ji{nh}: info {h}jv{nh}: load+verify {h}jr{nh}: revoke {h}jd{nh}: delegate

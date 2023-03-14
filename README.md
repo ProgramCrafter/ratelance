@@ -23,8 +23,8 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 ```
 $ git clone https://github.com/ProgramCrafter/ratelance.git
 $ pip3 install tonsdk pynacl requests
-$ cd ratelance/cli
-$ python3 main.py
+$ cd ratelance
+$ python3 cli_main.py
 ```
 
 ## Pros of this system
