@@ -179,7 +179,7 @@ def show_job(job: str, keyring):
   elif flag == 2:
     print(f'* {h}taken{nh} job')
     print(f'- {h}posted by  {nh}', d.load_msg_addr().to_string(True, True, True))
-    print(f'- {h}worker     {nh}', d.load_msg_addr().to_string())
+    print(f'- {h}worker     {nh}', d.load_msg_addr().to_string(True, True, True))
     print(f'- {h}promising  {nh}', d.load_uint(64) / 1e9, 'TON')
     
     j_desc_text = decode_text(d.load_ref())
