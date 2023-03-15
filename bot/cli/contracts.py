@@ -1,4 +1,4 @@
-from .bcutils import input_address, load_account
+from .bcutils import input_address, load_account, load_transactions
 from .colors import h, nh, b, nb
 from .signing import sign_send
 
@@ -6,7 +6,7 @@ from tonsdk.boc import Builder, Cell
 from tonsdk.utils import Address
 import nacl.signing
 
-from base64 import b16decode, b16encode
+from base64 import b16decode, b16encode, b64decode
 import hashlib
 
 
@@ -26,7 +26,7 @@ def sign_pay_proposal(job: Address, bottom: int, upper: int, role: int, key_id: 
   secret_key_obj = nacl.signing.SigningKey(key['secret'])
   to_sign = serialize_signed_data(job, bottom, upper)
   signature = secret_key_obj.sign(to_sign)[:512//8]
-  print(signature, len(signature))
+  # print(signature, len(signature))
   
   b = Builder()
   b.store_uint(role, 2)
@@ -88,7 +88,7 @@ def check_intersect(limits_a: tuple[int, int], proposal_plus_limits: tuple[Cell,
 
 
 def check_negotiate_suggestions(job: Address, p: bytes, w: bytes, r: bytes, skip_role: int):
-  for tx in load_transactions(job.to_string(True, True, True)):
+  for tx in load_transactions(job.to_string(True, True, True), 0):
     try:
       body = Cell.one_from_boc(b64decode(tx['in_msg']['msg_data'])).begin_parse()
       if body.preload_uint(32) != 0x4bed4ee8: continue
