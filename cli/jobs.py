@@ -62,7 +62,7 @@ def load_jobs(start_lt=None, custom_notif_addr=None):
           'f2c76d3ea82e6147887320a71b359553f99cb176a521d63081facfb80a183dbf',
         )
       else:
-        body.skip_bits(32)
+        body.load_uint(32)
       
       job = body.load_msg_addr()
       poster = Address(tx['in_msg']['source']['address']).to_string(True, True, True)
@@ -96,6 +96,9 @@ def show_jobs(start_lt=None, custom_notif_addr=None, validate_jobs=False):
 
 def post_job(value: int, stake: int, desc_text: str, keyring: Keyring, key_id: str):
   print(f'\n{h}Creating new job{nh}', repr(desc_text))
+  
+  if not key_id.strip() and len(keyring.keys_info) == 1:
+    key_id = list(keyring.keys_info.keys())[0]
   
   key_info = keyring.keys_info[key_id]
   assert key_info['key_id'] == key_id
@@ -176,7 +179,7 @@ def show_job(job: str, keyring):
   elif flag == 2:
     print(f'* {h}taken{nh} job')
     print(f'- {h}posted by  {nh}', d.load_msg_addr().to_string(True, True, True))
-    print(f'- {h}worker     {nh}', d.load_msg_addr().to_string(True, True, True))
+    print(f'- {h}worker     {nh}', d.load_msg_addr().to_string())
     print(f'- {h}promising  {nh}', d.load_uint(64) / 1e9, 'TON')
     
     j_desc_text = decode_text(d.load_ref())

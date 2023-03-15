@@ -94,7 +94,7 @@ class Slice:
       return None
     self.load_bit()  # anycast
     workchain_id = hex(self.load_int(8))[2:]
-    hashpart = hex(self.load_uint(256))[2:]
+    hashpart = hex(self.load_uint(256))[2:].zfill(64)
     return Address(workchain_id + ':' + hashpart)
 
   def load_coins(self) -> int:

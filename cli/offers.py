@@ -113,6 +113,9 @@ def post_offer(job: str, stake: int, desc_text: str, shjh: int, keyring: Keyring
   print(f'\n{h}Creating new offer{nh}', repr(desc_text))
   print('You will have to use v4 wallet, because offer is a plugin.')
   
+  if not key_id.strip() and len(keyring.keys_info) == 1:
+    key_id = list(keyring.keys_info.keys())[0]
+  
   key_info = keyring.keys_info[key_id]
   assert key_info['key_id'] == key_id
   public_key = int.from_bytes(key_info['public'], 'big')

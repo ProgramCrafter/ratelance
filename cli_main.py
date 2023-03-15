@@ -11,6 +11,7 @@ import traceback
 import os
 
 from tonsdk.utils import Address
+from tonsdk.boc import Cell
 import requests
 
 

@@ -60,11 +60,13 @@ def close_job_with(job: Address, proposal: Cell):
 
 def load_job_keys_triple(job: Address) -> (bytes, bytes, bytes):
   acc = load_account(job.to_string(True, True, True))
-  assert acc['status'] == 'active'
+  if acc['status'] != 'active':
+    raise Exception('contract ' + acc['status'])
   
   d = Cell.one_from_boc(b16decode(acc['data'].upper())).begin_parse()
   flag = d.load_uint(2)
-  assert flag == 2
+  if flag != 2:
+    raise Exception('job is not delegated')
   
   d.load_msg_addr()
   d.load_msg_addr()
