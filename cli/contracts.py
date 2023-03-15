@@ -84,7 +84,7 @@ def load_job_keys_triple(job: Address) -> (bytes, bytes, bytes):
 
 
 def check_intersect(limits_a: tuple[int, int], proposal_plus_limits: tuple[Cell, int, int]) -> bool:
-  return max(limits_a[0], limits_b[1]) <= min(limits_a[1], limits_b[2])
+  return max(limits_a[0], proposal_plus_limits[1]) <= min(limits_a[1], proposal_plus_limits[2])
 
 
 def check_negotiate_suggestions(job: Address, p: bytes, w: bytes, r: bytes, skip_role: int):
