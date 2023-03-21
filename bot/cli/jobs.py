@@ -1,4 +1,4 @@
-from .bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address, load_account
+from .bcutils import decode_text, encode_text, load_transactions, shorten_escape, input_address, load_account, input_long
 from .signing import retrieve_auth_wallet, sign_send
 from .colors import h, nh, b, nb
 from .keyring import Keyring 
@@ -211,7 +211,7 @@ def process_jobs_cmd(command, keyring):
     key_id = input(f'Used key ({possible_keys_s}): ')
     value = int(1e9 * float(input('Promised job value (TON): ')))
     stake = int(1e9 * float(input('Send stake (TON): ')))
-    desc_text = input('Job description: ')
+    desc_text = input_long('Job description: ')
     
     post_job(value, stake, desc_text, keyring, key_id)
   elif command == 'jd':

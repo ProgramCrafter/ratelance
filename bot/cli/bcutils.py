@@ -14,6 +14,16 @@ def input_address(prompt):
       pass
 
 
+def input_long(prompt):
+  s = ''
+  while True:
+    t = input(prompt)
+    if not t: return s
+    
+    prompt = '> '
+    s += t + '\n'
+
+
 def load_transactions(address, start_lt):
   return requests.get(
     f'https://tonapi.io/v1/blockchain/getTransactions?account={address}&limit=100'
