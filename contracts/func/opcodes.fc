@@ -17,7 +17,7 @@ const int op::subscription    = 0x73756273;
 
 ;; ----  Job contract opcodes  -------------------------------------------------
 
-const int op::update_job    = 168;        ;; [TODO] 156 + zlib.crc32(b'op::update_job') % 100
+const int op::update_job    = 168;        ;; 156 + zlib.crc32(b'op::update_job') % 100
 const int op::lock_on_offer = 172;        ;; 156 + zlib.crc32(b'op::lock_on_offer') % 100
 const int op::collapse      = 177;        ;; 156 + zlib.crc32(b'op::collapse') % 100
 const int op::lock_success  = 173;        ;; 156 + zlib.crc32(b'op::lock_success') % 100
@@ -44,7 +44,6 @@ const int DEVELOPMENT = 1;
 
 ;; ----  Addresses (common)  ---------------------------------------------------
 
-const slice job_analytic_address = "EQA__Ratelance_______________________________CFj"a;
-const slice multisig_negotiation = "EQA__Ratelance__MULTISIG_NEGOTIATION_________H1U"a;
+const slice job_analytic_address = "EQA__RATELANCE_______________________________JvN"a;
 
 const slice ratelance_public_key = "233AD31DA6B7979BA0DC8E4C4FB944639EF447B6ACAD5071BFB466E88FF6F6FB"s;

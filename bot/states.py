@@ -56,6 +56,10 @@ Hello, <b>{in_msg_full['from']['first_name']}</b>! How could I serve you?
           
           self.enter_state(in_msg_full, reply, send_callback)
           return self
+        elif in_msg_body == 'Look up job status' or in_msg_body == 'List offers to specific job':
+          reply('Not implemented')
+          self.enter_state(in_msg_full, reply, send_callback)
+          return self
         
         self.enter_state(in_msg_full, reply, send_callback)
         return self

@@ -56,7 +56,7 @@ def load_jobs(start_lt=None, custom_notif_addr=None):
       body = Cell.one_from_boc(b64decode(tx['in_msg']['msg_data'])).begin_parse()
       
       if body.preload_uint(32) != 0x130850fc:
-        print(f'\n{b}* legacy job notification [without TL-B tag]{nb}')
+        # legacy job notification [without TL-B tag]
         assert tx['hash'] in (
           '155ccfdc282660413ada2c1b71ecbd5935db7afd40c82d7b36b8502fea064b8a',
           'f2c76d3ea82e6147887320a71b359553f99cb176a521d63081facfb80a183dbf',

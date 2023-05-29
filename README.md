@@ -15,7 +15,7 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 ## Contact us
 
 - Read latest news: https://t.me/ratelance
-- Vote for us in Hack-a-TONx: https://dorahacks.io/buidl/4227
+- Vote for us in different hackatons by DoraHacks: https://dorahacks.io/buidl/4227
 - Propose something, report a bug, etc: [issues](https://github.com/ProgramCrafter/ratelance/issues)
 
 ## Install
@@ -41,28 +41,23 @@ $ python3 cli_main.py
 
 - `contracts` :white_check_mark:
   - platform contracts with unit tests
+    - tests are based on toncli; they can be run as `cd contracts; python3 build.py`
+    - test results from the build system are located in `contracts/toncli.log`; all tests pass successfully
+    - compiled contract codes are located in `contracts/build/boc` directory
 - `cli`
   - [x] Getting information about jobs, posting and revoking
   - [x] Applying for jobs, revoking offers
-  - [ ] Verifying for job/offer existence and validity
   - [x] Listing offers, delegating job to someone
+  - [ ] Automatically verifying job/offer existence and validity
   - [ ] Encrypted communication channel on top of job contract
   - [x] Negotiating payments
   - [x] Working with keyring
   - [ ] Integration with system keys storage/using password for keyring encryption
+  - **used contract codes are located in `cli/assets`, they are not synchronized automatically on recompilation**
 - `freelance-highlevel.idr`
   - [x] High-level contracts representation
-  - [ ] Storing contracts' balances
   - [x] Transaction loop implementation
-  - [ ] Proof that transaction loop terminates (based on balances)
-  - [x] Freelance job contract types
-  - [x] Freelance job contract code
-  - [ ] Freelance worker contract types
-  - [ ] Freelance worker contract code
-  - [ ] Job contract theorems
-  - [ ] Job contract theorems' proofs
-  - [ ] Worker (offer) contract theorems
-  - [ ] Worker (offer) contract theorems' proofs
+  - Further work on formal contract description is suspended, as it means simulating something at least closely similar to TON, and as such it should be funded separately.
 
 ## Algorithm described in detail
 
@@ -119,3 +114,7 @@ $ python3 cli_main.py
 - `3.`  &nbsp;&ndash;
 - `2.`  &nbsp;&ndash;
 - `1.`  &nbsp;&ndash;
+
+### TL-B schemes
+
+Moved to `interaction.tlb`.
