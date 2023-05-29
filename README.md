@@ -22,7 +22,7 @@ We are focused on creating an environment of collaboration and DeTrust :handshak
 
 ```
 $ git clone https://github.com/ProgramCrafter/ratelance.git
-$ pip3 install tonsdk pynacl requests
+$ pip3 install --upgrade tonsdk pynacl requests bitarray bitstring==3.1.9
 $ cd ratelance
 $ python3 cli_main.py
 ```
