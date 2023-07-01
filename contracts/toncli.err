@@ -12,15 +12,15 @@ Call stack:
     exec(code, run_globals)
   File "C:\Program Files\Python39\Scripts\toncli.exe\__main__.py", line 7, in <module>
     sys.exit(main())
-  File "C:\Program Files\Python39\lib\site-packages\toncli\main.py", line 65, in main
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\main.py", line 67, in main
     CommandsExecuter(command, string_kwargs, parser)
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 39, in __init__
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\commands\commands_executer.py", line 39, in __init__
     self.command_mapper[command](self)
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 49, in run_tests_command
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\commands\commands_executer.py", line 49, in run_tests_command
     return RunTestsCommand(self.string_kwargs, self.parser)
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\command_classes\run_tests_command.py", line 12, in __init__
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\commands\command_classes\run_tests_command.py", line 12, in __init__
     test_runner.run(args.contracts.split() if args.contracts else None,
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\test\tests.py", line 26, in run
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\test\tests.py", line 26, in run
     logger.info(f"\U0001f308 Start tests")
 Message: '\U0001f308 Start tests'
 Arguments: ()
@@ -38,15 +38,15 @@ Call stack:
     exec(code, run_globals)
   File "C:\Program Files\Python39\Scripts\toncli.exe\__main__.py", line 7, in <module>
     sys.exit(main())
-  File "C:\Program Files\Python39\lib\site-packages\toncli\main.py", line 65, in main
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\main.py", line 67, in main
     CommandsExecuter(command, string_kwargs, parser)
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 39, in __init__
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\commands\commands_executer.py", line 39, in __init__
     self.command_mapper[command](self)
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\commands_executer.py", line 49, in run_tests_command
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\commands\commands_executer.py", line 49, in run_tests_command
     return RunTestsCommand(self.string_kwargs, self.parser)
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\commands\command_classes\run_tests_command.py", line 12, in __init__
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\commands\command_classes\run_tests_command.py", line 12, in __init__
     test_runner.run(args.contracts.split() if args.contracts else None,
-  File "C:\Program Files\Python39\lib\site-packages\toncli\modules\utils\test\tests.py", line 47, in run
+  File "C:\Users\Tigr\AppData\Roaming\Python\Python39\site-packages\toncli\modules\utils\test\tests.py", line 47, in run
     logger.info(f"\U0001f94c Build {gr}successfully{rs}, check out {gr}.{location}{rs}")
 Message: '\U0001f94c Build \x1b[32msuccessfully\x1b[0m, check out \x1b[32m.\\build\x1b[0m'
 Arguments: ()
