@@ -57,7 +57,7 @@ try:
         while not machine.state_is(SentinelState):
             if not len(messages) and machine.needs_message():
                 for e in backend.receive_all_new_messages():
-                    logging.info(f'Putting message into queue: {e}')
+                    logging.info(f'Putting message into queue: {str(e)[:40]}')
                     messages.append(e)
         
             if not machine.needs_message():

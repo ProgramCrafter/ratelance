@@ -6,7 +6,8 @@ import json
 import time
 import os
 
-from stateful import IState, MultiuserStateMachine, RegisterState
+from stateful import IState, MultiuserStateMachine, RegisterState, load_chat_id
+from keyutils import KeyCustodialUtils
 from textutils import JobPostUtils
 
 import cli.polyfills
@@ -43,22 +44,46 @@ class StartState(IState):
     def __repr__(self):     return json.dumps(self.settings)
     
     def run(self, message_info, reply, send_callback):
+        chat_id = load_chat_id(message_info)
+        keypair = KeyCustodialUtils.get_keypair_for_user(chat_id)
+        
         if 'message' in message_info:
             text = message_info['message'].get('text', '')
-            if text == '/start set-wallet':
+            if text == '/setwallet' or text == '/start set-wallet':
                 new_state = SetWalletState(self.settings)
                 new_state.enter_state(message_info, reply, send_callback)
                 return new_state
+            if text == '/me' or text == '/start me':
+                wallet_text = f'Wallet: <pre>{self.settings.get("address","")}</pre>\n'
+                pkey_text = f'Public key - ID {keypair["key_id"]}: <pre>{keypair["public_armored"]}</pre>'
+                reply(wallet_text + pkey_text, keyboard=[['Show secret key'], ['/setwallet']])
+            if text == 'Show secret key' or text == '/showsecret':
+                chat_id = message_info['message']['chat']['id']
+                keypair = KeyCustodialUtils.get_keypair_for_user(chat_id)
+                reply('<pre>%s</pre>' % keypair['secret_armored'])
+                
+            return self
+        elif 'chosen_inline_result' in message_info:
+            reply(JobPostUtils.format_deploy_links(
+                message_info['chosen_inline_result']['query'],
+                self.settings['address'],
+                keypair['public']
+            ))
             return self
         
         if 'address' not in self.settings:
             reply([], {'text': 'Set wallet address', 'start_parameter': 'set-wallet'})
-            return self
-        
-        reply(JobPostUtils.format_article_list(
-            message_info['inline_query']['query'],
-            self.settings['address']
-        ), None)
+        elif message_info['inline_query']['chat_type'] in ('group', 'supergroup'):
+            reply([], {'text': 'Usage in groups is locked', 'start_parameter': 'me'})
+        else:
+            reply(JobPostUtils.format_article_list(
+                message_info['inline_query']['query'],
+                self.settings['address'],
+                keypair['public']
+            ), None)
+            
+            chat_id = message_info['inline_query']['from']['id']
+            # send_callback(chat_id, 'You need to deploy the job.')
         
         return self
 
@@ -141,6 +166,9 @@ def donation_middleware(backend, in_msg_full):
         backend.send_message(sender, format_donation_msg(), reply=lt)
         return True
     elif in_msg_body == '/stopkb':
+        raise KeyboardInterrupt
+    elif in_msg_body == '//restart':
+        os.startfile(__file__.replace('states.py', 'main.py'))
         raise KeyboardInterrupt
     else:
         return False

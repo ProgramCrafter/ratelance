@@ -48,7 +48,7 @@ def yield_messages():
                        'reply_to_message': Message, 'text': str?}};
         '''
         
-        if 'message' in update or 'inline_query' in update:
+        if 'message' in update or 'inline_query' in update or 'chosen_inline_result' in update:
             logging.debug(update)
             yield update
 

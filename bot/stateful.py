@@ -25,9 +25,11 @@ def RegisterState(state_class):
     return state_class
 
 
-def _load_chat_id(message_info):
+def load_chat_id(message_info):
     if 'inline_query' in message_info:
         return message_info['inline_query']['from']['id']
+    elif 'chosen_inline_result' in message_info:
+        return message_info['chosen_inline_result']['from']['id']
     elif 'message' in message_info:
         return message_info['message'].get('chat', {}).get('id', -1)
     else:
@@ -53,22 +55,22 @@ class UserStateMachine:
         if self.state.needs_message() and not message_info:
             return
         
-        chat_id = _load_chat_id(message_info)
+        chat_id = load_chat_id(message_info)
         
         if 'message' in message_info:
             incoming_id = message_info['message']['message_id']
-            
             def reply(reply_text, **kw):
                 backend.send_message(chat_id, reply_text, reply=incoming_id, **kw)
-            
             self.state = self.state.run(message_info, reply, backend.send_message)
-        else:
+        elif 'chosen_inline_result' in message_info:
+            def reply(reply_text, **kw):
+                backend.send_message(chat_id, reply_text, **kw)
+            self.state = self.state.run(message_info, reply, backend.send_message)
+        elif 'inline_query' in message_info:
             incoming_id = message_info['inline_query']['id']
-            
             def reply_inline(results, button, **kw):
                 backend.respond_inline_query(incoming_id, results, button, **kw)
-            
-            self.state = self.state.run(message_info, reply_inline, None)
+            self.state = self.state.run(message_info, reply_inline, backend.send_message)
         
     
     def state_is(self, state_class):
@@ -113,7 +115,7 @@ class MultiuserStateMachine:
             if any(intercept(backend, message_info) for intercept in self.interceptors):
                 return
             
-            chat_id = _load_chat_id(message_info)
+            chat_id = load_chat_id(message_info)
             
             if chat_id not in self.users:
                 self.users[chat_id] = UserStateMachine(self.start_state_class())
