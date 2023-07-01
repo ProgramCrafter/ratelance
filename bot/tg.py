@@ -41,15 +41,40 @@ def yield_messages():
     for update in updates['result']:
         update_id.set_max(update['update_id'])
         
-        if 'message' in update:
-            message = update['message']
+        '''
+        typeof update = 
+          {'inline_query': {'id': str, 'from': User, 'query': str, 'offset': str}} |
+          {'message': {'message_id': int, 'from': User?, 'date': int, 'chat': Chat,
+                       'reply_to_message': Message, 'text': str?}};
+        '''
         
+        if 'message' in update or 'inline_query' in update:
             logging.debug(update)
-            
-            yield message
+            yield update
 
 
-def send(chat, text, reply=None, keyboard=None, parse_mode='html'):
+def respond_inline_query(query_id, results, button):
+    msg_params = {
+        'inline_query_id': query_id,
+        'results': results,
+        'is_personal': True,
+        'cache_time': 40
+    }
+    if button: msg_params['button'] = button
+    
+    logging.warning(msg_params)
+    try:
+        result = requests.post(url + 'answerInlineQuery', json=msg_params).json()
+    except:
+        result = {'ok': False, 'description': traceback.format_exc()}
+    
+    if not result.get('ok', False):
+        logging.warning('Inline responding failed ' + str(result))
+    
+    return result
+
+
+def send(chat, text, reply=None, keyboard=None, parse_mode='html', custom={}):
     '''
     Function sending message `text` via Telegram bot to user specified by `chat`.
     If `reply` is specified, the sent message is reply to message with specified ID.
@@ -69,6 +94,8 @@ def send(chat, text, reply=None, keyboard=None, parse_mode='html'):
         }
     else:
         msg_params['reply_markup'] = {'remove_keyboard': True}
+    
+    msg_params.update(custom)
     
     try:
         result = requests.post(url + 'sendMessage', json=msg_params).json()

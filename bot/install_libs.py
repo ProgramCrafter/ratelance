@@ -8,7 +8,6 @@ pip_prefix = shlex.quote(interpreter).replace("'", '"') + ' -m pip install '
 try:
     import portalocker
 except:
-    print(pip_prefix + 'portalocker')
     os.system(pip_prefix + 'portalocker')
 
 try:

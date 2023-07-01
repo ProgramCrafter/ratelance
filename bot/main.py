@@ -26,7 +26,7 @@ logging.basicConfig(format='%(asctime)s  [%(levelname)s]  %(message)s',
                     level=logging.DEBUG)
 
 
-import test
+# import test
 
 
 LOCK_PATH = os.path.abspath(__file__ + '/../.lock')
@@ -46,13 +46,12 @@ try:
     logging.info('Bot is waiting for older instance to close.')
     time.sleep(1)
     
+    messages = deque()
+    
     with portalocker.Lock(LOCK_PATH, 'w') as _:
         logging.info('Bot started.')
-        
-        messages = deque()
         backend = TelegramBackend()
         machine = load_multiuser_machine()
-        
         machine.interceptors.append(donation_middleware)
         
         while not machine.state_is(SentinelState):
@@ -71,6 +70,8 @@ try:
             
             time.sleep(2)
 
+except KeyboardInterrupt:
+    logging.warning(backend.send_message(1463706336, 'Stopped by KeyboardInterrupt'))
 except:
     logging.error('Started sending crash log')
 
@@ -94,4 +95,4 @@ finally:
     logging.info('Bot has stopped.')
 
     with open(os.path.abspath(__file__ + '/../bot.json'), 'w') as f:
-      f.write(repr(machine))
+        f.write(repr(machine))

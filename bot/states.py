@@ -1,14 +1,16 @@
 import functools
 import logging
+import secrets
 import html
 import json
 import time
 import os
 
 from stateful import IState, MultiuserStateMachine, RegisterState
+from textutils import JobPostUtils
 
-import cli.polyfills  # ordering is important
-from cli.jobs import load_jobs
+import cli.polyfills
+from cli.dnsresolver import resolve_to_userfriendly, TONDNSResolutionError
 
 
 def flatten(arr):
@@ -16,8 +18,14 @@ def flatten(arr):
         yield from row
 
 
-def is_cmd(message, command):
-    return message.startswith(command + ' ') or message == command
+#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+'''
+typeof message_info = 
+  {'inline_query': {'id': str, 'from': User, 'query': str, 'offset': str}} |
+  {'message': {'message_id': int, 'from': User?, 'date': int, 'chat': Chat,
+               'reply_to_message': Message, 'text': str?}};
+'''
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 @RegisterState
@@ -25,51 +33,66 @@ class StartState(IState):
     '''
     Welcome state, where everyone not yet known to bot starts.
     '''
-    def needs_message(self):
-        return True
     
-    def enter_state(self, in_msg_full, reply, send_callback):
-        reply_text = f'''
-Hello, <b>{in_msg_full['from']['first_name']}</b>! How could I serve you?
-'''.strip()
-        
-        reply(reply_text, keyboard=[
-          ['List available jobs', 'Look up job status', 'List offers to specific job']
-        ])
-    
-    def run(self, in_msg_full, reply, send_callback):
-        in_msg_body = in_msg_full.get('text', '')
-        if in_msg_body == '/restart' and in_msg_full['from']['id'] == 1463706336:
-          reply('Restarting.')
-          os.startfile(__file__.removesuffix('states.py') + 'main.py')
-          return SentinelState(self)
-        
-        if in_msg_body == 'List available jobs':
-          job_texts = ['=== Available jobs ===']
-          for (job, poster, value, desc) in load_jobs():
-            job_texts.append(f'Order by <pre>{poster}</pre> worth approximately {value/1e9} TON')
-            job_texts.append(f'Address: <pre>{job}</pre>')
-            job_texts.append(desc)
-            job_texts.append('')
-          
-          reply('\n'.join(job_texts))
-          
-          self.enter_state(in_msg_full, reply, send_callback)
-          return self
-        elif in_msg_body == 'Look up job status' or in_msg_body == 'List offers to specific job':
-          reply('Not implemented')
-          self.enter_state(in_msg_full, reply, send_callback)
-          return self
-        
-        self.enter_state(in_msg_full, reply, send_callback)
-        return self
-    
-    def __repr__(self):
-        return ''
+    def __init__(self, settings=None): self.settings = settings or {}
+    def needs_message(self): return True
+    def enter_state(self, message_info, reply, send_callback): pass
     
     @staticmethod
-    def load(state_repr):
-        return StartState()
+    def load(state_repr):   return StartState(json.loads(state_repr))
+    def __repr__(self):     return json.dumps(self.settings)
+    
+    def run(self, message_info, reply, send_callback):
+        if 'message' in message_info:
+            text = message_info['message'].get('text', '')
+            if text == '/start set-wallet':
+                new_state = SetWalletState(self.settings)
+                new_state.enter_state(message_info, reply, send_callback)
+                return new_state
+            return self
+        
+        if 'address' not in self.settings:
+            reply([], {'text': 'Set wallet address', 'start_parameter': 'set-wallet'})
+            return self
+        
+        reply(JobPostUtils.format_article_list(
+            message_info['inline_query']['query'],
+            self.settings['address']
+        ), None)
+        
+        return self
+
+
+@RegisterState
+class SetWalletState(IState):
+    def __init__(self, settings=None): self.settings = settings or {}
+    def needs_message(self): return True
+    def enter_state(self, message_info, reply, send_callback):
+        reply('Provide your TON wallet address in any format.')
+    
+    @staticmethod
+    def load(state_repr):   return StartState(json.loads(state_repr))
+    def __repr__(self):     return json.dumps(self.settings)
+    
+    def run(self, message_info, reply, send_callback):
+        if 'message' in message_info:
+            text = message_info['message'].get('text', '')
+            try:
+                self.settings['address'] = resolve_to_userfriendly(text)
+                reply(f'Wallet address set to {self.settings["address"]}.', custom={
+                    'reply_markup': {'inline_keyboard': [[{
+                        'text': 'Back to original chat',
+                        'switch_inline_query': ''
+                    }]]}
+                })
+                return StartState(self.settings)
+            except TONDNSResolutionError as e:
+                reply('Error when resolving address: ' + str(e) + '. Please, try again.')
+            except Exception as e:
+                reply(repr(e))
+        else:
+            reply([], {'text': 'Set wallet address', 'start_parameter': 'set-wallet'})
+        return self
 
 
 @RegisterState
@@ -84,26 +107,20 @@ class SentinelState(IState):
     def needs_message(self):
         return False
     
-    def enter_state(self, in_msg_full, reply, send_callback):
+    def enter_state(self, message_info, reply, send_callback):
         reply('Stopping.')
     
-    def run(self, in_msg_full, reply, send_callback):
+    def run(self, message_info, reply, send_callback):
         return self
-    
-    def __repr__(self):
-        if not self.previous_state:
-            return ''
-        
-        return self.previous_state.__class__.__name__ + ':' + repr(self.previous_state)
     
     @staticmethod
     def load(state_repr):
         logging.info(f'Loading SentinelState: {state_repr}')
-        
-        if state_repr != 'None':
-            return IState.load(state_repr)    # state just before SentinelState
-        
+        if state_repr != 'None': return IState.load(state_repr)    # state just before SentinelState
         return SentinelState()
+    def __repr__(self):
+        if not self.previous_state: return ''
+        return self.previous_state.__class__.__name__ + ':' + repr(self.previous_state)
 
 
 def format_donation_msg():
@@ -114,6 +131,8 @@ ton://transfer/EQCyoez1VF4HbNNq5Rbqfr3zKuoAjKorhK-YZr7LIIiVrSD7
 
 
 def donation_middleware(backend, in_msg_full):
+    if 'message' not in in_msg_full: return
+    in_msg_full = in_msg_full['message']
     in_msg_body = in_msg_full.get('text', '')
     sender = in_msg_full['from']['id']
     lt = in_msg_full['message_id']
@@ -121,5 +140,7 @@ def donation_middleware(backend, in_msg_full):
     if in_msg_body == '/donate':
         backend.send_message(sender, format_donation_msg(), reply=lt)
         return True
+    elif in_msg_body == '/stopkb':
+        raise KeyboardInterrupt
     else:
         return False
