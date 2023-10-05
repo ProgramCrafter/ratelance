@@ -1,0 +1,86 @@
+@keyframes gradient{
+    0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+@keyframes open {
+    0% {opacity: 0;}
+    100% {opacity: 1;}
+  }
+
+*{
+    font-family: PT Sans;
+}
+
+footer{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #cc8800;
+    padding: 2vh 10vw;
+}
+
+footer > ul{
+    list-style-type: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+footer > ul > li > a{
+    font-size: large;
+    color: white;
+}
+
+a{
+    text-decoration: none;
+    color:#cc8800
+}
+
+body{
+    margin: 0;
+    animation: open 1.5s forwards;
+}
+
+header{
+    padding: 2vh 10vw;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0 0 40% 40%;
+
+
+    background: linear-gradient(90deg, #e3cb8d, #ffbb66, #cc8800);
+    background-size: 400% 400%;
+    animation: gradient 8s ease infinite;
+    transform: translate3d(0, 0, 0);
+}
+
+.job{
+    border: 3px solid black;
+    border-radius: 30px;
+    padding: 2vh 2vw;
+    font-size: 2vh;
+}
+
+.job-name{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.posted-by{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
